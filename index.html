@@ -184,12 +184,15 @@
   .last-updated{ font-size:11px; color:var(--muted); white-space:nowrap; }
   .last-updated.fresh{ color:var(--ok); }
 
+  #teacher-class-picker{ position:relative; min-height:calc(100vh - 60px); }
   .class-picker-card{
-    max-width:320px; margin:20px 0 0; background:var(--panel); border:1px solid var(--line);
-    border-radius:16px; padding:24px;
+    max-width:480px; width:calc(100% - 40px); background:var(--panel); border:1px solid var(--line);
+    border-radius:20px; padding:44px 40px;
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
   }
-  .class-picker-card select{ width:100%; margin-bottom:16px; }
-  .class-picker-card .btn{ display:block; margin:0 auto; }
+  .class-picker-card p.desc{ font-size:19px; margin-bottom:24px; }
+  .class-picker-card select{ width:100%; margin-bottom:24px; font-size:19px; padding:14px 16px; border-radius:12px; }
+  .class-picker-card .btn{ display:block; margin:0 auto; font-size:18px; padding:14px 40px; }
 
   /* 1번 화면 — 학생 진행 상황: 이름 + 진행률 바 + 문항 수 + 정답률 */
   .stu-grid{ display:flex; flex-direction:column; gap:8px; max-width:900px; margin:0 auto; }
@@ -228,9 +231,17 @@
   .ans-card{ background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px 14px; cursor:pointer; font-size:14px; line-height:1.6; }
   .ans-card:hover{ border-color:var(--accent); }
 
-  .spotlight-overlay{ position:fixed; inset:0; background:rgba(6,9,13,.85); z-index:110; display:flex; align-items:center; justify-content:center; padding:24px; }
-  .spotlight-overlay.hidden{ display:none; }
-  .spotlight-box{ max-width:700px; width:100%; background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:30px; font-size:22px; line-height:1.7; text-align:center; }
+  .spotlight-overlay{
+    position:fixed; inset:0; background:rgba(6,9,13,0); z-index:110; display:flex; align-items:center; justify-content:center; padding:24px;
+    opacity:0; transition:opacity .28s ease, background .28s ease;
+  }
+  .spotlight-overlay.show{ background:rgba(6,9,13,.85); opacity:1; }
+  .spotlight-box{
+    max-width:280px; width:100%; background:var(--panel); border:1px solid var(--line); border-radius:18px;
+    padding:30px; font-size:22px; line-height:1.7; text-align:center;
+    transform:scale(1); transform-origin:center; transition:transform .32s cubic-bezier(.22,1,.36,1);
+  }
+  .spotlight-overlay.show .spotlight-box{ transform:scale(2.5); }
   .spotlight-close{ margin-top:20px; }
 
   .hidden{ display:none !important; }
@@ -1241,11 +1252,24 @@ function renderShortAnswerCards(rows, colIndex){
 }
 
 function openSpotlight(text){
+  const overlay = document.getElementById("spotlight-overlay");
   document.getElementById("spotlight-text").textContent = text;
-  document.getElementById("spotlight-overlay").classList.remove("hidden");
+  overlay.classList.remove("hidden");
+  // 다음 프레임에 show를 붙여서 확대 애니메이션이 재생되게 함
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      overlay.classList.add("show");
+    });
+  });
 }
-document.getElementById("spotlight-close").addEventListener("click", ()=>{
-  document.getElementById("spotlight-overlay").classList.add("hidden");
+function closeSpotlight(){
+  const overlay = document.getElementById("spotlight-overlay");
+  overlay.classList.remove("show");
+  setTimeout(()=>{ overlay.classList.add("hidden"); }, 320);
+}
+document.getElementById("spotlight-close").addEventListener("click", closeSpotlight);
+document.getElementById("spotlight-overlay").addEventListener("click", (e)=>{
+  if(e.target.id === "spotlight-overlay") closeSpotlight();
 });
 </script>
 </body>
