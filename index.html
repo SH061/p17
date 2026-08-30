@@ -36,11 +36,12 @@
 
   main#app{ max-width:720px; margin:0 auto; padding:14px 14px 60px; }
 
-  header.top{ position:sticky; top:0; z-index:20; background:linear-gradient(180deg, var(--bg) 78%, transparent); padding:10px 0 6px; }
-  .brand{ display:flex; align-items:baseline; gap:8px; margin-bottom:8px; justify-content:space-between; flex-wrap:wrap; row-gap:8px; }
+  header.top{ position:sticky; top:0; z-index:20; background:linear-gradient(180deg, var(--bg) 78%, transparent); padding:8px 0 4px; }
+  .brand{ display:flex; align-items:flex-start; gap:8px; margin-bottom:4px; justify-content:space-between; flex-wrap:nowrap; }
   .brand-left{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1 1 auto; }
-  .brand h1{ font-size:19px; margin:0; letter-spacing:.2px; font-weight:900; }
-  .brand .sub{ color:var(--accent); font-size:13px; font-weight:700; }
+  .brand h1{ font-size:19px; margin:0; letter-spacing:.2px; font-weight:900; line-height:1.3; }
+  .brand h1 .sub{ color:var(--accent); font-size:13px; font-weight:700; margin-left:6px; white-space:nowrap; }
+  .brand-right{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex:0 0 auto; }
   .teacher-toggle{
     font-size:11.5px; font-weight:700; padding:6px 10px; border-radius:999px;
     background:var(--panel-2); border:1px solid var(--line); color:var(--muted); cursor:pointer;
@@ -48,9 +49,9 @@
   }
   .teacher-toggle:hover{ color:var(--text); border-color:var(--accent); }
 
-  .conn-row{ display:flex; justify-content:flex-end; align-items:center; gap:8px; margin:2px 0 8px; flex-wrap:wrap; }
-  .conn-badge{ display:inline-flex; align-items:center; gap:6px; font-size:10.5px; padding:3px 9px; border-radius:999px; }
-  .conn-badge i{ width:7px; height:7px; border-radius:50%; display:inline-block; }
+  .conn-row{ display:flex; justify-content:flex-end; align-items:center; gap:4px; flex-wrap:nowrap; }
+  .conn-badge{ display:inline-flex; align-items:center; gap:3px; font-size:8.5px; padding:2px 6px; border-radius:999px; white-space:nowrap; }
+  .conn-badge i{ width:5px; height:5px; border-radius:50%; display:inline-block; }
   .conn-badge.conn-checking{ color:var(--muted); background:var(--panel-2); }
   .conn-badge.conn-checking i{ background:var(--muted); animation:pulse 1.2s infinite; }
   .conn-badge.conn-ok{ color:var(--ok); background:rgba(111,191,115,.12); }
@@ -108,6 +109,13 @@
   .btn.ghost{ background:transparent; }
   .btn.danger{ background:rgba(213,86,107,.16); color:var(--bad); border-color:rgba(213,86,107,.4); }
   .btn:disabled{ opacity:.4; cursor:not-allowed; }
+  .btn.loading{ opacity:.75; cursor:progress; position:relative; }
+  @keyframes btn-spin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+  #btn-teacher-refresh.loading::before{
+    content:""; display:inline-block; width:11px; height:11px; margin-right:6px;
+    border:2px solid currentColor; border-right-color:transparent; border-radius:50%;
+    animation:btn-spin .6s linear infinite; vertical-align:-1px;
+  }
   .btnrow{ display:flex; gap:10px; margin-top:18px; }
   .btnrow .btn{ flex:1; }
 
@@ -123,7 +131,7 @@
   .qtext{ font-size:17px; font-weight:700; line-height:1.6; margin:6px 0 4px; }
   .qimg-wrap{ margin:12px 0; text-align:center; }
   .qimg-wrap img{ max-width:100%; border-radius:10px; border:1px solid var(--line); background:#fff; }
-  .qimg-wrap.small img{ max-width:55%; }
+  .qimg-wrap.small img{ max-width:100%; }
 
   .choices{ display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
   .choice-btn{
@@ -131,6 +139,9 @@
     background:var(--panel-2); color:var(--text); font-size:15px; font-weight:700; cursor:pointer; text-align:center;
   }
   .choice-btn.picked{ border-color:var(--accent); background:var(--accent-dim); color:var(--accent); }
+  /* 단순 ①~⑤ 숫자 선택형 — 한 줄에 5개가 다 들어가도록 폭을 줄인 배치 */
+  .choices.five-col{ flex-wrap:nowrap; gap:6px; }
+  .choices.five-col .choice-btn{ flex:1 1 0; min-width:0; padding:12px 2px; font-size:14px; }
 
   .conn-status-inline{ font-size:12px; color:var(--muted); margin-top:14px; text-align:center; }
 
@@ -173,12 +184,12 @@
   .last-updated{ font-size:11px; color:var(--muted); white-space:nowrap; }
   .last-updated.fresh{ color:var(--ok); }
 
-  .class-picker-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:16px; }
-  .class-picker-grid button{
-    padding:16px 4px; border-radius:12px; border:1px solid var(--line); background:var(--panel-2); color:var(--text);
-    font-weight:800; font-size:15px; cursor:pointer;
+  .class-picker-card{
+    max-width:320px; margin:20px 0 0; background:var(--panel); border:1px solid var(--line);
+    border-radius:16px; padding:24px;
   }
-  .class-picker-grid button:hover{ border-color:var(--accent); color:var(--accent); }
+  .class-picker-card select{ width:100%; margin-bottom:16px; }
+  .class-picker-card .btn{ display:block; margin:0 auto; }
 
   /* 1번 화면 — 학생 진행 상황: 이름 + 진행률 바 + 문항 수 + 정답률 */
   .stu-grid{ display:flex; flex-direction:column; gap:8px; max-width:900px; margin:0 auto; }
@@ -245,14 +256,15 @@
   <header class="top">
     <div class="brand">
       <div class="brand-left">
-        <h1>수업내용 확인하기!</h1>
-        <div class="sub" id="topic-sub">산화와 환원</div>
+        <h1>수업내용 확인하기!<span class="sub" id="topic-sub">산화와 환원(2)</span></h1>
       </div>
-      <button class="teacher-toggle" id="btn-teacher-toggle">🧑‍🏫 선생님 보기</button>
-    </div>
-    <div class="conn-row">
-      <div class="conn-badge conn-checking" id="net-status"><i></i>인터넷 확인 중…</div>
-      <div class="conn-badge conn-checking" id="conn-status"><i></i>연결 확인 중…</div>
+      <div class="brand-right">
+        <div class="conn-row">
+          <div class="conn-badge conn-checking" id="net-status"><i></i>인터넷 확인 중…</div>
+          <div class="conn-badge conn-checking" id="conn-status"><i></i>연결 확인 중…</div>
+        </div>
+        <button class="teacher-toggle" id="btn-teacher-toggle">🧑‍🏫 선생님 보기</button>
+      </div>
     </div>
     <div class="conn-detail hidden" id="conn-detail"></div>
     <div class="progress-row" id="progress-row" style="display:none;">
@@ -348,12 +360,14 @@
 
     <!-- 반 선택 -->
     <div id="teacher-class-picker">
-      <div class="picker-topbar">
-        <span class="picker-title">🧑‍🏫 선생님 보기</span>
+      <div style="max-width:900px; margin:0 auto; padding:14px 16px 0; text-align:right;">
         <button class="btn ghost" id="btn-teacher-close">닫기 ✕</button>
       </div>
-      <p class="desc" style="text-align:center;">확인할 반을 선택하세요</p>
-      <div class="class-picker-grid" id="class-picker-grid"></div>
+      <div class="class-picker-card">
+        <p class="desc" style="text-align:center; margin-bottom:14px;">확인할 반을 선택하세요</p>
+        <select id="teacher-class-select"></select>
+        <button class="btn primary" id="btn-confirm-class">확인</button>
+      </div>
     </div>
 
     <!-- 반 선택 후 화면 -->
@@ -596,6 +610,13 @@ const REFLECT_QUESTIONS = [
 const HEADERS = QUESTIONS.map(q=>q.text).concat(REFLECT_QUESTIONS);
 const CORRECT_ANSWERS = QUESTIONS.map(q=> (q.type==="short") ? "" : (q.correctAnswer||"")).concat(["","",""]);
 
+// 선생님보기 "문항별 결과" 화면에서 넘겨볼 전체 목록 — 학생용 QUESTIONS 뒤에
+// 성찰 질문 3개도 서답형(정답 없음) 항목으로 이어 붙여서, 교사가 문항뿐
+// 아니라 성찰 응답까지 같은 화면에서 넘겨보며 확인할 수 있게 한다.
+const TEACHER_ITEMS = QUESTIONS.concat(REFLECT_QUESTIONS.map((text, i)=>({
+  id: "reflect"+(i+1), type: "short", tag: "성찰 질문", text: text
+})));
+
 /* ============================================================
    상태
 ============================================================ */
@@ -693,6 +714,10 @@ function renderQuestion(){
 
   if(q.type === "choice"){
     choicesEl.classList.remove("hidden");
+    // 단순 ①~⑤ 숫자 선택형(보기 안에 다른 문자 없이 번호만 있는 경우)만
+    // 한 줄에 5개가 다 들어가도록 좁게 배치한다.
+    const isPureNumberChoices = q.options.length === 5 && q.options.every(o => /^[①②③④⑤]$/.test(o));
+    choicesEl.classList.toggle("five-col", isPureNumberChoices);
     q.options.forEach(opt=>{
       const btn = document.createElement("button");
       btn.className = "choice-btn" + (existing===opt ? " picked":"");
@@ -930,14 +955,16 @@ function openTeacherView(){
 }
 
 /* ---------- 반 선택 ---------- */
-const classPickerGrid = document.getElementById("class-picker-grid");
+const teacherClassSelect = document.getElementById("teacher-class-select");
 let teacherClass = "";
 for(let i=1;i<=CLASS_COUNT;i++){
-  const btn = document.createElement("button");
-  btn.textContent = i+"반";
-  btn.addEventListener("click", ()=>selectTeacherClass(i+"반"));
-  classPickerGrid.appendChild(btn);
+  const opt = document.createElement("option");
+  opt.value = i+"반"; opt.textContent = i+"반";
+  teacherClassSelect.appendChild(opt);
 }
+document.getElementById("btn-confirm-class").addEventListener("click", ()=>{
+  selectTeacherClass(teacherClassSelect.value);
+});
 function selectTeacherClass(cls){
   teacherClass = cls;
   document.getElementById("teacher-current-class").textContent = cls;
@@ -1018,10 +1045,14 @@ async function renderTeacherDashboard(){
   const refreshBtn = document.getElementById("btn-teacher-refresh");
   const stamp = document.getElementById("teacher-last-updated");
   refreshBtn.classList.add("loading");
+  refreshBtn.disabled = true;
+  refreshBtn.textContent = "↻ 새로고침 중…";
   const body = document.getElementById("teacher-progress-body");
   if(!gasConfigured()){
     body.innerHTML = '<div class="storage-warning">아직 구글 시트 연결 주소가 설정되지 않았어요.</div>';
     refreshBtn.classList.remove("loading");
+    refreshBtn.disabled = false;
+    refreshBtn.textContent = "↻ 새로고침";
     return;
   }
   try{
@@ -1053,6 +1084,8 @@ async function renderTeacherDashboard(){
     stamp.textContent = "갱신 실패"; stamp.classList.remove("fresh");
   }finally{
     refreshBtn.classList.remove("loading");
+    refreshBtn.disabled = false;
+    refreshBtn.textContent = "↻ 새로고침";
   }
 }
 
@@ -1061,7 +1094,7 @@ document.getElementById("btn-tq-prev").addEventListener("click", ()=>{
   if(tqIndex>0){ tqIndex--; tqRevealed=false; renderTeacherQuestionView(); }
 });
 document.getElementById("btn-tq-next").addEventListener("click", ()=>{
-  if(tqIndex<QUESTIONS.length-1){ tqIndex++; tqRevealed=false; renderTeacherQuestionView(); }
+  if(tqIndex<TEACHER_ITEMS.length-1){ tqIndex++; tqRevealed=false; renderTeacherQuestionView(); }
 });
 document.getElementById("btn-reveal").addEventListener("click", ()=>{
   tqRevealed = true;
@@ -1071,10 +1104,10 @@ document.getElementById("btn-reveal").addEventListener("click", ()=>{
 let resultTab = "student"; // "student" | "answer"
 
 function renderTeacherQuestionView(){
-  const q = QUESTIONS[tqIndex];
-  document.getElementById("tq-count").textContent = (tqIndex+1)+" / "+QUESTIONS.length;
+  const q = TEACHER_ITEMS[tqIndex];
+  document.getElementById("tq-count").textContent = (tqIndex+1)+" / "+TEACHER_ITEMS.length;
   document.getElementById("btn-tq-prev").disabled = (tqIndex===0);
-  document.getElementById("btn-tq-next").disabled = (tqIndex===QUESTIONS.length-1);
+  document.getElementById("btn-tq-next").disabled = (tqIndex===TEACHER_ITEMS.length-1);
 
   document.getElementById("tq-text").textContent = q.text;
   const noteEl = document.getElementById("tq-note");
@@ -1098,7 +1131,7 @@ function renderTeacherQuestionView(){
 
 function renderResultTabsAndBody(q){
   const rows = (latestTeacherData && latestTeacherData.rows) || [];
-  const colIndex = tqIndex; // QUESTIONS와 headers 순서가 동일
+  const colIndex = tqIndex; // TEACHER_ITEMS(문항+성찰질문)와 headers 순서가 동일
   const tabsEl = document.getElementById("result-tabs");
   const bodyEl = document.getElementById("result-body");
 
