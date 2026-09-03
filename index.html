@@ -675,12 +675,30 @@ classSelect.addEventListener("change", checkIntroValid);
 document.getElementById("in-num").addEventListener("input", checkIntroValid);
 document.getElementById("in-name").addEventListener("input", checkIntroValid);
 
-document.getElementById("btn-start").addEventListener("click", ()=>{
+document.getElementById("btn-start").addEventListener("click", async ()=>{
   state.className = classSelect.value;
   const num = document.getElementById("in-num").value.trim();
   const name = document.getElementById("in-name").value.trim();
   state.studentName = num + " " + name;
   state.current = 0;
+
+  // 이전에 한 번 제출한 적이 있다면, 그때 골랐던 답을 미리 채워 넣는다
+  // (다시 들어와도 답이 비어 보이지 않도록).
+  const startBtn = document.getElementById("btn-start");
+  startBtn.disabled = true;
+  const prevAnswers = await fetchPreviousAnswers(state.className, sanitizeKey(state.studentName));
+  startBtn.disabled = false;
+  if(prevAnswers && prevAnswers.length){
+    const nQ = QUESTIONS.length;
+    for(let i=0; i<nQ; i++){
+      if(prevAnswers[i] !== undefined && prevAnswers[i] !== "") state.answers[i] = prevAnswers[i];
+    }
+    for(let j=0; j<REFLECT_QUESTIONS.length; j++){
+      const v = prevAnswers[nQ + j];
+      if(v !== undefined && v !== "") state.reflectAnswers[j] = v;
+    }
+  }
+
   renderQuestion();
   showScreen("question");
   reportProgress();
@@ -834,6 +852,21 @@ function alertInline(msg){
 ============================================================ */
 function sanitizeKey(name){
   return name.trim().slice(0,20).replace(/[\/\\'"\s]/g, "_");
+}
+
+// 학생이 이전에 이미 제출한 적이 있는지 서버에 물어보고, 있으면 그때 답을
+// 그대로 돌려받는다. 실패해도(네트워크 오류 등) 조용히 빈 결과로 넘어가고
+// 활동 시작 자체를 막지는 않는다.
+async function fetchPreviousAnswers(cls, key){
+  if(!gasConfigured() || !key) return null;
+  try{
+    const res = await fetch(GAS_URL + "?action=studentAnswers&class=" + encodeURIComponent(cls) + "&key=" + encodeURIComponent(key), { method: "GET" });
+    if(!res.ok) return null;
+    const data = await res.json();
+    return (data && Array.isArray(data.answers)) ? data.answers : null;
+  }catch(e){
+    return null;
+  }
 }
 
 let resyncTimer = null;
