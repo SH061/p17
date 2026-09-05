@@ -252,6 +252,23 @@
     .tq-layout{ grid-template-columns: 1fr; }
   }
 
+  /* 보기(note)+이미지가 함께 있는 문항 전용 레이아웃 — 왼쪽은 이미지만 크게,
+     오른쪽은 뱃지+텍스트+보기+선택지+정답통계를 세로로 이어 배치한다.
+     note와 image가 둘 다 있는 문항에서만 사용되고(renderTeacherQuestionView에서 판별),
+     그 외 일반 문항은 기존 .tq-layout(위) 구조를 그대로 쓴다. */
+  .tq-layout-split{ grid-template-columns: 1fr 1.35fr; }
+  .tq-split-image{
+    background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; padding:10px;
+    max-height:calc(100vh - 132px);
+  }
+  .tq-split-image .tq-img-box{ height:100%; max-height:calc(100vh - 152px); margin:0; }
+  .tq-split-right{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px 26px;
+    display:flex; flex-direction:column;
+    max-height:calc(100vh - 132px); overflow-y:auto;
+  }
+
   /* tq-card는 세로 flex 컬럼으로 두고, 화면 높이를 넘는 긴 문항(선택지 5개+보기 등)은
      카드 자체를 넘기지 않고 카드 내부에서만 스크롤되게 해서 "절대 잘리지 않게" 한다.
      상단 sticky 탑바(약 60px)와 하단 고정 내비게이션(72px) 높이를 뺀 값을 최대 높이로 잡는다. */
@@ -294,24 +311,33 @@
   #tq-choices{ margin-top:10px; }
   #tq-choices .choice-btn{ cursor:default; font-size:22px; padding:14px 10px; }
 
-  /* 성찰 질문처럼 그림·선택지가 없는 문항 — 카드 안 내용이 세로 중앙에 오도록 채워서
-     다른 문항 카드와 비슷한 비중으로 보이게 한다. */
-  .tq-card.tq-empty-fill{ justify-content:center; min-height:min(62vh, 760px); }
-  .tq-card.tq-empty-fill #tq-text{ font-size:38px; text-align:center; margin:18px 0; }
-  .tq-card.tq-empty-fill .qmeta{ justify-content:center; }
+  /* 성찰 질문처럼 그림·선택지가 없는 문항 — 뱃지는 카드 왼쪽 위, 질문 문장은 그
+     아래 왼쪽 정렬로 자연스럽게 배치하고(가운데 정렬 X), 카드 폭을 활용해 되도록
+     한 줄에 가깝게 넓게 보이도록만 폰트를 키운다. 카드 높이는 다른 문항 카드처럼
+     내용에 맞춰 자연스럽게 정해지고, 억지로 화면을 꽉 채우지 않는다. */
+  .tq-card.tq-empty-fill #tq-text{ font-size:32px; margin:14px 0 6px; }
+  /* 나중에 성찰 질문에 안내 문구가 추가될 때를 대비한 여분 문단 — 지금은 데이터에
+     없으면 비워둔 채 hidden 처리된다 */
+  .reflect-guide{ font-size:17px; color:var(--muted); line-height:1.65; margin:0 0 10px; }
 
   .reveal-gate{ text-align:center; margin:10px 0; }
   .reveal-gate .btn.primary{ font-size:22px; font-weight:800; padding:20px 36px; }
   .result-tabs{ display:flex; gap:10px; margin:0 0 16px; }
-  .result-tabs .btn{ flex:1; font-size:18px; padding:16px 10px; }
-  .result-tabs .btn.active{ background:var(--accent-dim); color:var(--accent); border-color:var(--accent); }
+  .result-tabs .btn{ flex:1; font-size:20px; font-weight:700; padding:18px 10px; }
+  .result-tabs .btn.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
 
-  .pie-wrap{ display:flex; gap:26px; align-items:center; flex-wrap:wrap; justify-content:center; margin:10px 0; }
-  .pie{ width:220px; height:220px; border-radius:50%; flex:0 0 auto; }
-  .legend{ display:flex; flex-direction:column; gap:12px; }
-  .legend-item{ display:flex; align-items:center; gap:10px; font-size:18px; font-weight:600; }
-  .legend-swatch{ width:16px; height:16px; border-radius:4px; flex:0 0 auto; }
-  .answer-big{ text-align:center; font-size:38px; font-weight:900; color:var(--accent); padding:26px 14px; }
+  .pie-wrap{ display:flex; gap:30px; align-items:center; flex-wrap:wrap; justify-content:center; margin:10px 0; }
+  .pie{ width:260px; height:260px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 0 1px var(--line); }
+  .legend{ display:flex; flex-direction:column; gap:14px; }
+  .legend-item{ display:flex; align-items:center; gap:12px; font-size:20px; font-weight:700; color:var(--text); }
+  .legend-swatch{ width:20px; height:20px; border-radius:5px; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
+  /* "정답" 탭에서 보여주는 정답 표시 — 교실 뒤에서도 바로 보이도록 아주 크고 굵게,
+     진한 배경+흰 글씨로 크림색 배경과 확실히 대비되게 한다 */
+  .answer-big{
+    text-align:center; font-size:76px; font-weight:900; line-height:1.25;
+    color:#fff; background:#7a2419; border-radius:16px; padding:34px 20px;
+    letter-spacing:.01em;
+  }
 
   .card-list{ display:flex; flex-direction:column; gap:8px; margin-top:10px; max-height:420px; overflow-y:auto; }
   .ans-card{ background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px 14px; cursor:pointer; font-size:14px; line-height:1.6; }
@@ -521,32 +547,46 @@
           <span class="tq-count" id="tq-count">1 / 20</span>
           <button class="btn ghost" id="btn-tq-next">다음 문항 ▶</button>
         </div>
-        <div class="tq-layout">
+        <!-- 기본 레이아웃: 왼쪽 문항 카드 전체 / 오른쪽 사이드 패널(정답통계).
+             note(보기)와 image가 함께 있는 문항일 때는 이 레이아웃이 숨겨지고
+             아래 .tq-layout-split 레이아웃이 대신 쓰인다(renderTeacherQuestionView 참고).
+             실제 콘텐츠 요소(뱃지·텍스트·보기·이미지·선택지·정답통계)는 두 레이아웃이
+             공유하며, 매 렌더링마다 JS가 해당 요소들을 알맞은 컨테이너로 옮겨 담는다. -->
+        <div class="tq-layout" id="tq-layout-normal">
           <!-- 왼쪽: 문항 카드 (뱃지+학습지페이지+출처라벨+그림+텍스트+선택지) -->
-          <div class="tq-card">
-            <div class="qmeta">
-              <div class="qmeta-left">
-                <span class="qtag" id="tq-tag">문항</span>
-                <span class="q-page" id="tq-page"></span>
-              </div>
-            </div>
-            <div id="tq-text"></div>
-            <div id="tq-note" class="hidden"></div>
-            <div id="tq-image-wrap" class="hidden tq-img-box"><img id="tq-image" src="" alt=""></div>
-            <div id="tq-choices" class="choices hidden"></div>
-          </div>
+          <div class="tq-card" id="tq-card-normal"></div>
 
           <!-- 오른쪽: (그림이 2개로 나뉜 문항이면) 두 번째 그림 + 학생 정답/정답 탭 + 원그래프 -->
-          <div class="tq-side">
+          <div class="tq-side" id="tq-side-normal">
             <div id="tq-image2-wrap" class="hidden tq-img-box tq-img-box-side"><img id="tq-image2" src="" alt=""></div>
-            <div id="reveal-gate" class="reveal-gate">
-              <button class="btn primary" id="btn-reveal">결과 보기</button>
-            </div>
+          </div>
+        </div>
 
-            <div id="tq-result" class="hidden">
-              <div class="result-tabs" id="result-tabs"></div>
-              <div id="result-body"></div>
+        <!-- 보기(note)+이미지가 함께 있는 문항 전용: 왼쪽 이미지 / 오른쪽 텍스트+보기+선택지+정답통계 -->
+        <div class="tq-layout tq-layout-split hidden" id="tq-layout-split">
+          <div class="tq-split-image" id="tq-split-image"></div>
+          <div class="tq-split-right" id="tq-split-right"></div>
+        </div>
+
+        <!-- 두 레이아웃이 공유하는 실제 콘텐츠 요소들 — 렌더링 시 JS가 알맞은 위치로 옮긴다 -->
+        <div id="tq-content-pool" style="display:none;">
+          <div class="qmeta" id="tq-meta-block">
+            <div class="qmeta-left">
+              <span class="qtag" id="tq-tag">문항</span>
+              <span class="q-page" id="tq-page"></span>
             </div>
+          </div>
+          <div id="tq-text"></div>
+          <div id="tq-guide" class="reflect-guide hidden"></div>
+          <div id="tq-note" class="hidden"></div>
+          <div id="tq-image-wrap" class="hidden tq-img-box"><img id="tq-image" src="" alt=""></div>
+          <div id="tq-choices" class="choices hidden"></div>
+          <div id="reveal-gate" class="reveal-gate">
+            <button class="btn primary" id="btn-reveal">결과 보기</button>
+          </div>
+          <div id="tq-result" class="hidden">
+            <div class="result-tabs" id="result-tabs"></div>
+            <div id="result-body"></div>
           </div>
         </div>
       </div>
@@ -1364,16 +1404,66 @@ document.getElementById("btn-reveal").addEventListener("click", ()=>{
 
 let resultTab = "student"; // "student" | "answer"
 
+/* note(보기)와 image가 둘 다 있는 문항 전용 레이아웃 전환.
+   기본 레이아웃(#tq-layout-normal)과 분할 레이아웃(#tq-layout-split)은 실제 콘텐츠
+   요소(뱃지·텍스트·보기·이미지·선택지·정답통계)를 공유하므로, 매 렌더링마다 이 함수가
+   그 요소들을 알맞은 컨테이너로 옮겨 담는다(appendChild는 기존 부모에서 노드를 옮긴다). */
+function layoutTeacherQuestionDom(isSplit){
+  const metaBlock = document.getElementById("tq-meta-block");
+  const textEl = document.getElementById("tq-text");
+  const guideEl = document.getElementById("tq-guide");
+  const noteEl = document.getElementById("tq-note");
+  const imgWrap = document.getElementById("tq-image-wrap");
+  const choicesEl = document.getElementById("tq-choices");
+  const revealGate = document.getElementById("reveal-gate");
+  const resultEl = document.getElementById("tq-result");
+
+  document.getElementById("tq-layout-normal").classList.toggle("hidden", isSplit);
+  document.getElementById("tq-layout-split").classList.toggle("hidden", !isSplit);
+
+  if(isSplit){
+    const imageHost = document.getElementById("tq-split-image");
+    const rightHost = document.getElementById("tq-split-right");
+    imageHost.appendChild(imgWrap);
+    rightHost.appendChild(metaBlock);
+    rightHost.appendChild(textEl);
+    rightHost.appendChild(guideEl);
+    rightHost.appendChild(noteEl);
+    rightHost.appendChild(choicesEl);
+    rightHost.appendChild(revealGate);
+    rightHost.appendChild(resultEl);
+  } else {
+    const cardHost = document.getElementById("tq-card-normal");
+    const sideHost = document.getElementById("tq-side-normal");
+    cardHost.appendChild(metaBlock);
+    cardHost.appendChild(textEl);
+    cardHost.appendChild(guideEl);
+    cardHost.appendChild(noteEl);
+    cardHost.appendChild(imgWrap);
+    cardHost.appendChild(choicesEl);
+    sideHost.appendChild(revealGate);
+    sideHost.appendChild(resultEl);
+  }
+}
+
 function renderTeacherQuestionView(){
   const q = TEACHER_ITEMS[tqIndex];
   document.getElementById("tq-count").textContent = (tqIndex+1)+" / "+TEACHER_ITEMS.length;
   document.getElementById("btn-tq-prev").disabled = (tqIndex===0);
   document.getElementById("btn-tq-next").disabled = (tqIndex===TEACHER_ITEMS.length-1);
 
+  // 보기(note)와 이미지가 함께 있는 문항만 "이미지(좌) | 텍스트+보기+선택지+정답통계(우)"
+  // 분할 레이아웃을 쓰고, 그 외(이미지만 있거나 note만 있거나 둘 다 없는) 문항은
+  // 기존의 "왼쪽 카드 전체 + 오른쪽 사이드 패널" 레이아웃을 그대로 쓴다.
+  const isSplit = !!(q.note && q.image);
+  layoutTeacherQuestionDom(isSplit);
+
   renderTagBadge(document.getElementById("tq-tag"), q.tag);
   renderPageLabel(document.getElementById("tq-page"), q.page);
 
   document.getElementById("tq-text").textContent = q.text;
+  const guideEl = document.getElementById("tq-guide");
+  if(q.guideText){ guideEl.textContent = q.guideText; guideEl.classList.remove("hidden"); } else guideEl.classList.add("hidden");
   const noteEl = document.getElementById("tq-note");
   if(q.note){ noteEl.textContent = q.note; noteEl.classList.remove("hidden"); } else noteEl.classList.add("hidden");
 
@@ -1417,12 +1507,12 @@ function renderTeacherQuestionView(){
     choicesEl.classList.add("hidden");
   }
 
-  // 성찰 질문처럼 그림·선택지가 모두 없는 문항은 카드 안 내용이 위쪽에 몰리지 않도록
-  // 세로 중앙 정렬 + 큰 글자 레이아웃(tq-empty-fill)을 적용한다. 그림/선택지가 있는
-  // 일반 문항은 이 클래스가 빠져서 기존 레이아웃 그대로 유지된다.
-  const tqCardEl = document.getElementById("tq-text").closest(".tq-card");
-  const isEmptyLayout = !q.image && !(q.type === "choice" && Array.isArray(q.options) && q.options.length);
-  tqCardEl.classList.toggle("tq-empty-fill", isEmptyLayout);
+  // 성찰 질문처럼 그림·선택지가 모두 없는 문항은 뱃지 아래 질문 텍스트를 조금 더
+  // 크게 보여준다(왼쪽 정렬은 유지, 가운데 정렬하지 않음). 분할 레이아웃은 항상
+  // image가 있어야 성립하므로 여기 해당되지 않는다.
+  const cardNormalEl = document.getElementById("tq-card-normal");
+  const isEmptyLayout = !isSplit && !q.image && !(q.type === "choice" && Array.isArray(q.options) && q.options.length);
+  cardNormalEl.classList.toggle("tq-empty-fill", isEmptyLayout);
 
   document.getElementById("reveal-gate").classList.toggle("hidden", tqRevealed);
   document.getElementById("tq-result").classList.toggle("hidden", !tqRevealed);
@@ -1479,7 +1569,10 @@ function mkTab(label, active, onClick){
   return b;
 }
 
-const PIE_COLORS = ["#cc785c","#5db8a6","#e8a55a","#a9583e","#6c6a64","#d4a017","#c64545","#8e8b82"];
+// 크림색 배경(--bg:#faf9f5, --panel:#efe9de)과 확실히 대비되도록 진하고 채도 높은
+// 팔레트로 구성 — 진한 코랄레드/네이비/포레스트그린/머스터드브라운/버건디/틸블루 등
+// 서로도 구분되고 배경과도 뚜렷하게 대비된다.
+const PIE_COLORS = ["#c0392b","#1f3a5f","#1e6b4f","#a5730a","#6b2142","#2c6e8f","#8a4b08","#41474d"];
 
 function renderDistributionPie(q, rows, colIndex, bodyEl){
   let buckets = []; // {label, count}
