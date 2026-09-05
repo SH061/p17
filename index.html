@@ -9,26 +9,27 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
   :root{
-    /* Claude.com 크림 + 코랄 디자인 시스템 (색만 교체, 레이아웃·크기 동일) */
-    --bg: #f5f0e8;
-    --panel: #faf9f5;
-    --panel-2: #efe9de;
+    /* design-cream-coral 디자인 시스템 */
+    --bg: #faf9f5;
+    --panel: #efe9de;
+    --panel-2: #f5f0e8;
     --line: #e6dfd8;
     --text: #141413;
     --muted: #6c6a64;
     --accent: #cc785c;
-    --accent-dim: #f0e0d8;
+    --accent-active: #a9583e;
+    --accent-dim: rgba(204,120,92,.14);
     --ok: #5db872;
     --bad: #c64545;
-    --warn: #c17d1f;
+    --warn: #d4a017;
     --on-accent: #ffffff;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(1200px 700px at 15% -10%, #efe6d6 0%, transparent 60%),
-      radial-gradient(1000px 600px at 110% 10%, #f0e3d8 0%, transparent 55%),
+      radial-gradient(1200px 700px at 15% -10%, rgba(204,120,92,.06) 0%, transparent 60%),
+      radial-gradient(1000px 600px at 110% 10%, rgba(93,184,166,.06) 0%, transparent 55%),
       var(--bg);
     color:var(--text);
     font-family:'Pretendard','Pretendard Variable',-apple-system,'Noto Sans KR',sans-serif;
@@ -42,8 +43,8 @@
   header.top{ position:sticky; top:0; z-index:20; background:linear-gradient(180deg, var(--bg) 78%, transparent); padding:8px 0 4px; }
   .brand{ display:flex; align-items:flex-start; gap:8px; margin-bottom:4px; justify-content:space-between; flex-wrap:nowrap; }
   .brand-left{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1 1 auto; }
-  .brand h1{ font-size:19px; margin:0; letter-spacing:.2px; font-weight:900; line-height:1.3; }
-  .brand h1 .sub{ color:var(--accent); font-size:13px; font-weight:700; margin-left:6px; white-space:nowrap; }
+  .brand h1{ font-size:19px; margin:0; letter-spacing:.2px; font-weight:900; line-height:1.3; white-space:nowrap; }
+  .brand h1 .sub{ display:block; margin:2px 0 0; color:var(--accent); font-size:13px; font-weight:700; white-space:nowrap; }
   .brand-right{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex:0 0 auto; }
   .teacher-toggle{
     font-size:11.5px; font-weight:700; padding:6px 10px; border-radius:999px;
@@ -107,7 +108,7 @@
     background:var(--panel-2); color:var(--text); font-size:15px; font-weight:700;
     cursor:pointer; -webkit-appearance:none; appearance:none;
   }
-  .btn.primary{ background:linear-gradient(180deg, var(--accent), #b5654e); border-color:transparent; color:var(--on-accent); }
+  .btn.primary{ background:linear-gradient(180deg, var(--accent), var(--accent-active)); border-color:transparent; color:var(--on-accent); }
   .btn.primary:disabled{ opacity:.45; cursor:not-allowed; }
   .btn.ghost{ background:transparent; }
   .btn.danger{ background:rgba(213,86,107,.16); color:var(--bad); border-color:rgba(213,86,107,.4); }
@@ -123,15 +124,26 @@
   .btnrow .btn{ flex:1; }
 
   .qmeta{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-  .qtag{ font-size:11px; font-weight:700; letter-spacing:.4px; color:var(--accent); text-transform:uppercase; }
   .qnum{ font-size:12px; color:var(--muted); }
+
+  .qtag{
+    display:inline-flex; align-items:center; height:24px; box-sizing:border-box;
+    font-weight:800; font-size:12.5px; white-space:nowrap; vertical-align:middle;
+  }
+  .qtag img{ height:24px; width:auto; display:block; }
+  .qtag.tag-pill{ padding:0 12px; border-radius:999px; color:#fff; }
+  .qtag.tag-confirm{ padding:0 12px 0 16px; border-radius:999px; background:#eaf1fb; color:#2f5fa8; border:1.5px solid #2f5fa8; }
+  .qtag.tag-pastexam{ background:#3f6fb0; }
+  .qtag.tag-suneung{ background:#4a5fc1; }
+  .qtag.tag-selfcheck2{ color:#1f3864; letter-spacing:.5px; }
+  .qtag.tag-reflect{ background:linear-gradient(135deg, var(--accent), var(--accent-active)); color:#fff; padding:0 12px; }
 
   .qnote{
     background:var(--panel-2); border:1px solid var(--line); border-radius:12px;
     padding:12px 14px; margin:10px 0; font-size:14px; color:var(--text); line-height:1.7;
     white-space:pre-wrap;
   }
-  .qtext{ font-size:17px; font-weight:700; line-height:1.6; margin:6px 0 4px; }
+  .qtext{ font-size:17px; font-weight:700; line-height:1.6; margin:6px 0 4px; white-space:pre-wrap; }
   .qimg-wrap{ margin:12px 0; text-align:center; }
   .qimg-wrap img{ max-width:100%; border-radius:10px; border:1px solid var(--line); background:#fff; }
   .qimg-wrap.small img{ max-width:100%; }
@@ -145,6 +157,11 @@
   /* 단순 ①~⑤ 숫자 선택형 — 한 줄에 5개가 다 들어가도록 폭을 줄인 배치 */
   .choices.five-col{ flex-wrap:nowrap; gap:6px; }
   .choices.five-col .choice-btn{ flex:1 1 0; min-width:0; padding:12px 2px; font-size:14px; }
+  /* O/X, 흡수/방출처럼 보기가 2개뿐인 선택형 — 탭(세그먼트) 스타일 */
+  .choices.two-tab{ flex-wrap:nowrap; gap:0; border:1.5px solid var(--line); border-radius:12px; overflow:hidden; }
+  .choices.two-tab > *{ border:none; border-radius:0; flex:1 1 0; }
+  .choices.two-tab > *:first-child{ border-right:1px solid var(--line); }
+  .choices.two-tab > *.picked{ background:var(--accent); color:#fff; }
 
   .conn-status-inline{ font-size:12px; color:var(--muted); margin-top:14px; text-align:center; }
 
@@ -261,6 +278,20 @@
   }
   #gate-overlay.hidden{ display:none; }
   #gate-message{ color:var(--muted); font-size:16px; }
+
+  .callout-record{
+    background:linear-gradient(180deg, rgba(204,120,92,.10), rgba(204,120,92,.05));
+    border:1.5px solid rgba(204,120,92,.35); border-radius:12px;
+    padding:13px 14px; margin-top:14px; font-size:13px; line-height:1.65; color:var(--text);
+  }
+  .callout-record .cr-title{ font-weight:800; color:var(--accent-active); font-size:13px; margin-bottom:3px; display:flex; align-items:center; gap:5px; }
+
+  .callout-warning{
+    background:linear-gradient(180deg, rgba(212,160,23,.12), rgba(212,160,23,.05));
+    border:1.5px solid rgba(212,160,23,.4); border-radius:12px;
+    padding:13px 14px; margin:14px 0 0; font-size:13px; line-height:1.65; color:var(--text);
+  }
+  .callout-warning .cw-title{ font-weight:800; color:#9c7a0e; font-size:13px; margin-bottom:3px; display:flex; align-items:center; gap:5px; }
 </style>
 </head>
 <body>
@@ -305,6 +336,10 @@
         <input type="text" id="in-num" placeholder="학번 (예: 10101)" inputmode="numeric">
         <input type="text" id="in-name" placeholder="이름">
       </div>
+      <div class="callout-warning">
+        <div class="cw-title">⚠️ 시작 전 꼭 확인하세요</div>
+        이 문제는 학습지의 문제입니다. 문제를 풀 때 모르면 학습지를 보면서 풀어보세요. 장난스럽게 푸는 경우 감점의 대상이 됩니다.
+      </div>
       <div class="btnrow">
         <button class="btn primary" id="btn-start" disabled>시작하기</button>
       </div>
@@ -338,11 +373,15 @@
   <section class="screen" id="screen-reflect">
     <div class="card">
       <div class="qmeta">
-        <span class="qtag">성찰 질문</span>
+        <span class="qtag" id="reflect-tag">성찰 질문</span>
         <span class="qnum" id="reflect-num">1 / 3</span>
       </div>
       <div class="qtext" id="reflect-text"></div>
       <textarea id="reflect-input" placeholder="자유롭게 적어보세요 (10자 이상)"></textarea>
+      <div class="callout-record">
+        <div class="cr-title">📋 참고사항</div>
+        이 성찰 질문에 대한 답변은 <b>학교생활기록부(세특) 작성의 기초 자료</b>로 선생님께 전달돼요. 대충 쓰지 않고 자신의 생각을 진솔하게 적을수록 나중에 나를 더 잘 보여주는 기록이 됩니다.
+      </div>
       <div class="btnrow">
         <button class="btn ghost" id="btn-reflect-prev">◀ 이전</button>
         <button class="btn primary" id="btn-reflect-next">다음 ▶</button>
@@ -571,18 +610,18 @@ const QUESTIONS = [
     image:"images/img-selfcheck-02.png",
     options:["O","X"], correctAnswer:"O" },
 
-  { id:"q9", type:"blank", tag:"확인문제 1",
+  { id:"q9", type:"choice", tag:"확인문제 1",
     text:"Mg + 2HCl → MgCl₂ + H₂ 반응식에서 ㉠은 산화, 환원 중 무엇인지 쓰시오.",
-    image:"images/img-confirm-01.png", correctAnswer:"산화" },
-  { id:"q10", type:"blank", tag:"확인문제 1",
+    image:"images/img-confirm-01.png", options:["산화","환원"], correctAnswer:"산화" },
+  { id:"q10", type:"choice", tag:"확인문제 1",
     text:"Mg + 2HCl → MgCl₂ + H₂ 반응식에서 ㉡은 산화, 환원 중 무엇인지 쓰시오.",
-    image:"images/img-confirm-01.png", correctAnswer:"환원" },
-  { id:"q11", type:"blank", tag:"확인문제 2",
+    image:"images/img-confirm-01.png", options:["산화","환원"], correctAnswer:"환원" },
+  { id:"q11", type:"choice", tag:"확인문제 2",
     text:"2AgNO₃ + Cu → 2Ag + Cu(NO₃)₂ 반응식에서 ㉠은 산화, 환원 중 무엇인지 쓰시오.",
-    image:"images/img-confirm-02.png", correctAnswer:"환원" },
-  { id:"q12", type:"blank", tag:"확인문제 2",
+    image:"images/img-confirm-02.png", options:["산화","환원"], correctAnswer:"환원" },
+  { id:"q12", type:"choice", tag:"확인문제 2",
     text:"2AgNO₃ + Cu → 2Ag + Cu(NO₃)₂ 반응식에서 ㉡은 산화, 환원 중 무엇인지 쓰시오.",
-    image:"images/img-confirm-02.png", correctAnswer:"산화" },
+    image:"images/img-confirm-02.png", options:["산화","환원"], correctAnswer:"산화" },
 
   { id:"q13", type:"choice", tag:"확인문제 3",
     text:"그림과 같이 아연판을 황산 구리(Ⅱ) 수용액에 넣어 반응시켰다. 이에 대한 설명으로 옳은 것만을 <보기>에서 있는 대로 고른 것은?",
@@ -591,19 +630,19 @@ const QUESTIONS = [
     options:["① ㄱ","② ㄴ","③ ㄷ","④ ㄱ, ㄴ","⑤ ㄴ, ㄷ"], correctAnswer:"① ㄱ" },
 
   { id:"q14", type:"choice", tag:"기출문제",
-    text:"[학력평가 기출] 그림을 보고 옳지 않은 것을 고르시오.",
+    text:"학력평가 기출",
     image:"images/img-pastexam-01.png", imageSize:"small",
     options:["①","②","③","④","⑤"], correctAnswer:"⑤" },
   { id:"q15", type:"choice", tag:"기출문제",
-    text:"[2022년 11월 학평 13번 통합과학] 그림을 보고 옳은 것을 모두 고르시오.",
+    text:"2022년 11월 학평 13번 통합과학",
     image:"images/img-pastexam-02.png", imageSize:"small",
     options:["①","②","③","④","⑤"], correctAnswer:"③" },
   { id:"q16", type:"choice", tag:"기출문제",
-    text:"[2021년 3월 학평 19번 화학Ⅰ] 그림을 보고 옳은 것을 모두 고르시오.",
+    text:"2021년 3월 학평 19번 화학Ⅰ",
     image:"images/img-pastexam-03.png", imageSize:"small",
     options:["①","②","③","④","⑤"], correctAnswer:"①" },
   { id:"q17", type:"choice", tag:"기출문제",
-    text:"[2022년 3월 학평 13번 화학Ⅰ] 그림을 보고 옳은 것을 모두 고르시오.",
+    text:"2022년 3월 학평 13번 화학Ⅰ",
     image:"images/img-pastexam-04.png", imageSize:"small",
     options:["①","②","③","④","⑤"], correctAnswer:"①" },
 ];
@@ -710,9 +749,37 @@ document.getElementById("btn-start").addEventListener("click", async ()=>{
 /* ============================================================
    문항 화면
 ============================================================ */
+function renderTagBadge(el, tag){
+  el.className = "qtag";
+  el.innerHTML = "";
+  if(tag === "스스로 확인하기"){
+    const img = document.createElement("img");
+    img.src = "images/tag-selfcheck.png";
+    img.alt = "스스로 확인하기";
+    img.onerror = function(){ renderTagBadgeFallback(el, "스스로 확인하기"); };
+    el.appendChild(img);
+  } else if(tag === "성찰 질문"){
+    el.classList.add("tag-reflect"); el.textContent = "성찰 질문";
+  } else if(tag && tag.indexOf("확인문제") === 0){
+    el.classList.add("tag-confirm"); el.textContent = "확인 문제";
+  } else if(tag && tag.indexOf("기출문제") === 0){
+    el.classList.add("tag-pill","tag-pastexam"); el.textContent = "기출 문제";
+  } else if(tag === "수능대비문제"){
+    el.classList.add("tag-pill","tag-suneung"); el.textContent = "수능대비문제";
+  } else if(tag === "깨알 개념 체크 문제"){
+    el.classList.add("tag-selfcheck2"); el.textContent = "[ 깨알 개념 체크 문제 ]";
+  } else {
+    el.textContent = tag || "문항";
+  }
+}
+function renderTagBadgeFallback(el, label){
+  el.innerHTML = ""; el.className = "qtag tag-pill";
+  el.style.background = "#5db8a6"; el.textContent = label;
+}
+
 function renderQuestion(){
   const q = QUESTIONS[state.current];
-  document.getElementById("q-tag").textContent = q.tag || "문항";
+  renderTagBadge(document.getElementById("q-tag"), q.tag);
   document.getElementById("q-num").textContent = (state.current+1)+" / "+QUESTIONS.length;
   document.getElementById("q-text").textContent = q.text;
 
@@ -743,6 +810,7 @@ function renderQuestion(){
     // 한 줄에 5개가 다 들어가도록 좁게 배치한다.
     const isPureNumberChoices = q.options.length === 5 && q.options.every(o => /^[①②③④⑤]$/.test(o));
     choicesEl.classList.toggle("five-col", isPureNumberChoices);
+    choicesEl.classList.toggle("two-tab", q.options.length === 2);
     q.options.forEach(opt=>{
       const btn = document.createElement("button");
       btn.className = "choice-btn" + (existing===opt ? " picked":"");
@@ -807,6 +875,7 @@ document.getElementById("btn-prev").addEventListener("click", ()=>{
    성찰 질문 화면
 ============================================================ */
 function renderReflect(){
+  renderTagBadge(document.getElementById("reflect-tag"), "성찰 질문");
   document.getElementById("reflect-num").textContent = (state.reflectIdx+1)+" / "+REFLECT_QUESTIONS.length;
   document.getElementById("reflect-text").textContent = REFLECT_QUESTIONS[state.reflectIdx];
   document.getElementById("reflect-input").value = state.reflectAnswers[state.reflectIdx] || "";
@@ -1284,7 +1353,7 @@ function mkTab(label, active, onClick){
   return b;
 }
 
-const PIE_COLORS = ["#cc785c","#c17d1f","#5db8a6","#4a6b8a","#b58ac9","#7ea172","#d98c9d","#8e8b82"];
+const PIE_COLORS = ["#cc785c","#5db8a6","#e8a55a","#a9583e","#6c6a64","#d4a017","#c64545","#8e8b82"];
 
 function renderDistributionPie(q, rows, colIndex, bodyEl){
   let buckets = []; // {label, count}
