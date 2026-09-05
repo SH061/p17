@@ -375,12 +375,14 @@
   .legend-item{ display:flex; align-items:center; gap:12px; font-size:44px; font-weight:700; color:var(--text); line-height:1.35; flex-wrap:wrap; }
   .legend-item .legend-count{ white-space:nowrap; }
   .legend-swatch{ width:40px; height:40px; border-radius:6px; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
-  /* "정답" 탭에서 보여주는 정답 표시 — 기존(76px)의 3배(228px)로 키워서 교실 뒤에서도
-     확실히 보이게 한다. 진한 배경+흰 글씨로 크림색 배경과 대비되는 것은 그대로 유지 */
+  /* "정답" 탭에서 보여주는 정답 표시 — 228px에서 다시 2배(456px)로 키워서 교실 맨
+     뒤에서도 확실히 보이게 한다. 가로 폭은 오른쪽 컬럼 폭에 고정되어 있으므로 영향
+     없고, 커진 글자만큼 세로(line-height/padding)로 자연스럽게 늘어난다. 진한 배경+
+     흰 글씨로 크림색 배경과 대비되는 것은 그대로 유지 */
   .answer-big{
-    text-align:center; font-size:228px; font-weight:900; line-height:1.2;
+    text-align:center; font-size:456px; font-weight:900; line-height:1.15;
     color:#fff; background:#7a2419; border-radius:16px; padding:34px 20px;
-    letter-spacing:.01em;
+    letter-spacing:.01em; word-break:break-word;
   }
 
   /* 성찰 질문 학생 답변 그리드 — "결과 보기"를 누르면 한 반(최대 약 23명)의 답변이
@@ -753,6 +755,12 @@ const CLASS_COUNT = 10;
    문항 데이터
 ============================================================ */
 const QUESTIONS = [
+  { id:"q0a", type:"choice", tag:"스스로 확인하기", page:18,
+    text:"물질이 전자를 잃는 반응은 환원이고, 물질이 전자를 얻는 반응은 산화이다.",
+    options:["O","X"], correctAnswer:"X" },
+  { id:"q0b", type:"choice", tag:"스스로 확인하기", page:18,
+    text:"구리와 은 이온이 만나면 구리가 전자를 ( ) 산화되어 구리 이온으로 변한다.",
+    options:["잃어","얻어"], correctAnswer:"잃어" },
   { id:"q1", type:"choice", tag:"깨알 개념 체크 문제", page:18,
     note:"그림과 같이 무색의 질산 은(AgNO₃) 수용액에 구리 줄을 넣었더니, 구리 줄의 표면에 은이 석출되었고 용액은 옅은 푸른색으로 변하였다. 이에 대한 설명으로 옳은 것은 O, 옳지 않은 것은 X표하시오.",
     text:"(1) 수용액의 은 이온 수는 변화 없다.",
