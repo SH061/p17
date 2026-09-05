@@ -321,7 +321,7 @@
   /* 교사용 전용 큰 글자 — 교실 뒷자리에서도 읽히도록 학생용보다 훨씬 크게.
      .teacher-panel 안에서만 적용되므로 학생 화면(.screen 등)에는 영향 없음 */
   .teacher-panel .qtag{ height:auto; font-size:39px; padding-top:4px; padding-bottom:4px; }
-  .teacher-panel .qtag img{ height:36px; }
+  .teacher-panel .qtag img{ height:54px; }
   .teacher-panel .q-page{ font-size:33px; }
   /* 뱃지+학습지쪽수+제목을 한 줄로 나란히 배치 — 제목이 아주 길 때만 자연스럽게 다음 줄로 넘어간다 */
   .teacher-panel .qmeta-left{ flex-wrap:wrap; row-gap:4px; }
@@ -434,6 +434,20 @@
   }
   .spotlight-overlay.show .spotlight-box.reflect{ transform:scale(1.04) !important; }
   .spotlight-close.reflect{ font-size:7.5px; padding:6.5px 9px; border-radius:6px; margin-top:10px; }
+
+  /* 문항별 결과 — 문항이 바뀔 때(탭 최초 진입/이전·다음 문항) 잠깐 정답률만 화면
+     전체에 크게 보여줬다가 신기루처럼 흐려지며 사라지는 연출. 단일 색 배경 + 단일 색
+     숫자로, 눈에 편안한 은은한 민트/틸 톤을 쓴다(자극적인 원색 대비 대신 차분한 톤). */
+  .accuracy-mirage{
+    position:fixed; inset:0; z-index:130; display:flex; align-items:center; justify-content:center;
+    background:#eaf6f1; opacity:0; transition:opacity .5s ease, filter .9s ease, transform .9s ease;
+    filter:blur(0px); transform:scale(1);
+  }
+  .accuracy-mirage.show{ opacity:1; }
+  .accuracy-mirage.fade{ opacity:0; filter:blur(18px); transform:scale(1.18); }
+  .accuracy-mirage-num{
+    font-size:min(28vw, 320px); font-weight:900; color:#1f6f5c; letter-spacing:-.02em; line-height:1;
+  }
 
   .hidden{ display:none !important; }
 
@@ -688,6 +702,11 @@
     <div id="spotlight-text"></div>
     <button class="btn ghost spotlight-close" id="spotlight-close">닫기</button>
   </div>
+</div>
+
+<!-- 문항별 결과 — 문항 진입 시 잠깐 뜨는 정답률 신기루 연출(교사용 전용) -->
+<div class="accuracy-mirage hidden" id="accuracy-mirage">
+  <div class="accuracy-mirage-num" id="accuracy-mirage-num"></div>
 </div>
 
 </div><!-- /#app-root -->
@@ -1408,7 +1427,7 @@ function switchTeacherTab(tab){
   document.getElementById("tab-results").classList.toggle("active", tab==="results");
   document.getElementById("view-progress").classList.toggle("hidden", tab!=="progress");
   document.getElementById("view-results").classList.toggle("hidden", tab!=="results");
-  if(tab==="results"){ tqRevealed = false; renderTeacherQuestionView(); }
+  if(tab==="results"){ tqRevealed = false; renderTeacherQuestionView(true); }
 }
 document.getElementById("tab-progress").addEventListener("click", ()=>switchTeacherTab("progress"));
 document.getElementById("tab-results").addEventListener("click", ()=>switchTeacherTab("results"));
@@ -1512,10 +1531,10 @@ async function renderTeacherDashboard(){
 
 /* ---------- 2번 화면부터: 문항별 결과 (이름 감춤) ---------- */
 document.getElementById("btn-tq-prev").addEventListener("click", ()=>{
-  if(tqIndex>0){ tqIndex--; tqRevealed=false; renderTeacherQuestionView(); }
+  if(tqIndex>0){ tqIndex--; tqRevealed=false; renderTeacherQuestionView(true); }
 });
 document.getElementById("btn-tq-next").addEventListener("click", ()=>{
-  if(tqIndex<TEACHER_ITEMS.length-1){ tqIndex++; tqRevealed=false; renderTeacherQuestionView(); }
+  if(tqIndex<TEACHER_ITEMS.length-1){ tqIndex++; tqRevealed=false; renderTeacherQuestionView(true); }
 });
 document.getElementById("btn-reveal").addEventListener("click", ()=>{
   tqRevealed = true;
@@ -1587,7 +1606,7 @@ function layoutTeacherQuestionDom(isSplit, noteOnLeft, isReflect){
   }
 }
 
-function renderTeacherQuestionView(){
+function renderTeacherQuestionView(showReveal){
   const q = TEACHER_ITEMS[tqIndex];
   document.getElementById("tq-count").textContent = (tqIndex+1)+" / "+TEACHER_ITEMS.length;
   document.getElementById("btn-tq-prev").disabled = (tqIndex===0);
@@ -1609,6 +1628,9 @@ function renderTeacherQuestionView(){
   renderPageLabel(document.getElementById("tq-page"), q.page);
 
   document.getElementById("tq-text").textContent = q.text;
+  // 성찰 질문 화면은 제목(질문 텍스트)을 일부러 작게 유지하는 별도 규칙(.tq-reflect-qcard
+  // #tq-text)이 있으므로, 뱃지 옆 자동 크기 맞춤 대상에서 제외한다.
+  if(!isReflect) fitMetaTitle(document.getElementById("tq-text"));
   const guideEl = document.getElementById("tq-guide");
   if(q.guideText){ guideEl.textContent = q.guideText; guideEl.classList.remove("hidden"); } else guideEl.classList.add("hidden");
   const noteEl = document.getElementById("tq-note");
@@ -1664,6 +1686,10 @@ function renderTeacherQuestionView(){
   } else {
     choicesEl.classList.add("hidden");
   }
+
+  // 문항이 바뀔 때만(탭 최초 진입/이전·다음 문항 이동) 정답률 신기루 연출을 보여준다.
+  // 새로고침·"결과 보기" 클릭 등 문항이 그대로인 재렌더링에서는 다시 뜨지 않는다.
+  if(showReveal) showAccuracyMirage(q);
 
   document.getElementById("reveal-gate").classList.toggle("hidden", tqRevealed);
   document.getElementById("tq-result").classList.toggle("hidden", !tqRevealed);
@@ -1734,6 +1760,30 @@ function renderResultTabsAndBody(q){
 // 안 들어가면(아주 긴 문장형 정답 등) 그때만 white-space를 normal로 바꾸고
 // word-break:keep-all을 유지해서, 단어/구 경계에서만 자연스럽게 줄바꿈되게 하고
 // 절대 한 글자씩 세로로 쪼개지지 않게 한다.
+// 교사용 문항 상단 한 줄(뱃지+학습지쪽수+제목/출처, .qmeta-left)에서 뱃지(이미지든 텍스트든)
+// 크기는 절대 건드리지 않고, 옆에 오는 제목 텍스트(#tq-text)만 자동으로 줄여서 최대한
+// 한 줄로 유지한다. 그래도 최소 크기(22px)로도 안 들어가면 그때만 다음 줄로 넘어가게
+// 허용한다(뱃지가 커져서 제목이 밀릴 때 뱃지가 아니라 제목 쪽이 양보하는 방식).
+function fitMetaTitle(titleEl){
+  const row = titleEl.closest(".qmeta-left");
+  if(!row) return;
+  const MAX_FONT = 45, MIN_FONT = 22, STEP = 2;
+  let size = MAX_FONT;
+  row.style.flexWrap = "nowrap";
+  titleEl.style.whiteSpace = "nowrap";
+  titleEl.style.fontSize = size + "px";
+  while(size > MIN_FONT && row.scrollWidth > row.clientWidth){
+    size -= STEP;
+    titleEl.style.fontSize = size + "px";
+  }
+  if(row.scrollWidth > row.clientWidth){
+    row.style.flexWrap = "wrap";
+    titleEl.style.whiteSpace = "normal";
+  } else {
+    row.style.flexWrap = "nowrap";
+  }
+}
+
 function fitAnswerBig(el){
   if(!el) return;
   const MAX_FONT = 320, MIN_FONT = 40, STEP = 4;
@@ -1764,6 +1814,49 @@ function mkTab(label, active, onClick){
 // 팔레트로 구성 — 진한 코랄레드/네이비/포레스트그린/머스터드브라운/버건디/틸블루 등
 // 서로도 구분되고 배경과도 뚜렷하게 대비된다.
 const PIE_COLORS = ["#c0392b","#1f3a5f","#1e6b4f","#a5730a","#6b2142","#2c6e8f","#8a4b08","#41474d"];
+
+// 문항별 결과 화면에 처음 들어가거나 이전/다음 문항으로 넘어갈 때, 그 문항의
+// 정답률(현재 선택된 반 학생들만 대상 — rows가 이미 그 반으로 좁혀져 있음)을
+// 화면 전체에 큼직하게 잠깐 보여줬다가 신기루처럼 사라지는 연출.
+// 정답이 정해진 선택형·빈칸형 문항에서만 뜨고, 서답형·성찰 질문(정답 없음)에는 안 뜬다.
+function computeQuestionAccuracy(q, rows, colIndex){
+  if(!q || q.type === "short" || !q.correctAnswer) return null;
+  const correct = String(q.correctAnswer).trim();
+  let total = 0, right = 0;
+  (rows||[]).forEach(r=>{
+    const v = String((r.answers||[])[colIndex] || "").trim();
+    if(v === ""){ return; }
+    total++;
+    if(v === correct) right++;
+  });
+  if(total === 0) return null;
+  return Math.round(right/total*100);
+}
+
+let accuracyMirageTimer = null;
+function showAccuracyMirage(q){
+  const overlay = document.getElementById("accuracy-mirage");
+  if(!overlay) return;
+  clearTimeout(accuracyMirageTimer);
+  const rows = (latestTeacherData && latestTeacherData.rows) || [];
+  const pct = computeQuestionAccuracy(q, rows, tqIndex);
+  if(pct === null){
+    overlay.classList.add("hidden");
+    overlay.classList.remove("show","fade");
+    return;
+  }
+  document.getElementById("accuracy-mirage-num").textContent = pct + "%";
+  overlay.classList.remove("hidden","fade");
+  // 다음 프레임에 show를 붙여서 등장 애니메이션이 재생되게 함
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{ overlay.classList.add("show"); });
+  });
+  // 잠깐 보여준 뒤 신기루처럼(흐려지며 커지며) 사라지고, 끝나면 완전히 숨긴다.
+  accuracyMirageTimer = setTimeout(()=>{
+    overlay.classList.add("fade");
+    setTimeout(()=>{ overlay.classList.add("hidden"); overlay.classList.remove("show","fade"); }, 900);
+  }, 1400);
+}
 
 function renderDistributionPie(q, rows, colIndex, bodyEl){
   let buckets = []; // {label, count}
