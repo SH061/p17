@@ -244,7 +244,7 @@
   /* 선생님보기 문항별 결과 — 좌(문항 카드) / 우(정답 탭+원그래프) 2단 배치.
      좌측 문제 카드 비중을 최대한 키우고, 하단 고정 내비게이션과 겹치지 않도록 여백 확보 */
   .tq-layout{
-    display:grid; grid-template-columns: 1fr minmax(520px, 560px); gap:18px;
+    display:grid; grid-template-columns: 1fr minmax(560px, 620px); gap:18px;
     max-width:none; width:100%; margin:0 auto; align-items:start;
     padding-bottom:72px;
   }
@@ -305,7 +305,7 @@
      교실 뒷자리에서도 보이도록 뷰포트 높이 기준으로 크게 잡되, flex:1 1 auto + min-height:0으로
      문항 텍스트/보기/선택지가 많아지면 이미지 쪽이 먼저 줄어들어 카드 전체가 잘리지 않게 한다. */
   .tq-img-box{
-    height:min(62vh, 760px); flex:1 1 auto; min-height:120px;
+    height:min(74vh, 900px); flex:1 1 auto; min-height:120px;
     display:flex; align-items:center; justify-content:center;
     margin:8px auto; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden;
     width:100%;
@@ -330,21 +330,20 @@
   #tq-choices{ margin-top:10px; }
   #tq-choices .choice-btn{ cursor:default; font-size:22px; padding:14px 10px; }
 
-  /* 성찰 질문처럼 그림·선택지가 없는 문항 — 뱃지는 카드 왼쪽 위, 질문 문장은 그
-     아래 왼쪽 정렬로 자연스럽게 배치하고(가운데 정렬 X), 카드 폭을 활용해 되도록
-     한 줄에 가깝게 넓게 보이도록만 폰트를 키운다. 카드 높이는 다른 문항 카드처럼
-     내용에 맞춰 자연스럽게 정해지고, 억지로 화면을 꽉 채우지 않는다. */
-  /* 성찰 질문은 교사가 써둔 질문 자체보다 학생이 실제로 제출한 답변을 함께 읽는 게
-     중요하므로, 질문 카드는 오히려 이전보다 작게(24px) 줄인다 — 아래 .card-list/.ans-card는
-     반대로 크게 키운다 */
-  .tq-card.tq-empty-fill #tq-text{ font-size:24px; font-weight:700; margin:10px 0 6px; text-wrap:pretty; }
-  /* 성찰 질문 화면: 왼쪽 질문 카드보다 오른쪽 학생 답변 카드(.tq-side)가 진짜 중요한
-     정보이므로, 오른쪽 높이에 왼쪽을 맞춘다 — 이 문항일 때만 grid를 stretch로 바꾸고
-     양쪽 카드에 height:100%를 줘서 더 짧은 왼쪽이 오른쪽 높이까지 늘어나게 한다.
-     (다른 문항 타입은 기존처럼 align-items:start를 그대로 써서 영향 없음) */
-  .tq-layout:has(.tq-card.tq-empty-fill){ align-items:stretch; }
-  .tq-layout .tq-card.tq-empty-fill{ height:100%; }
-  .tq-layout:has(.tq-card.tq-empty-fill) #tq-side-normal{ height:100%; }
+  /* 성찰 질문 전용 레이아웃 — 기출문제/확인문제 등 다른 문항의 좌우 2단(.tq-layout)
+     구조와는 완전히 분리된 독립 구조다. 위쪽엔 작고 간결한 질문 카드(가로로 넓게
+     한 줄~두 줄), 아래쪽엔 "결과 보기"를 누르면 여러 학생의 답변이 한 번에 다 보이는
+     그리드가 나온다. 클래스도 공유하지 않아서(.tq-reflect-*) 다른 레이아웃을 건드리지 않는다. */
+  .tq-reflect-layout{
+    display:flex; flex-direction:column; gap:16px;
+    max-width:none; width:100%; padding-bottom:72px;
+  }
+  .tq-reflect-qcard{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:16px 24px; flex:0 0 auto;
+  }
+  .tq-reflect-qcard #tq-text{ font-size:26px; font-weight:700; margin:8px 0 4px; text-wrap:pretty; }
+  .tq-reflect-results{ flex:1 1 auto; min-height:0; }
   /* 나중에 성찰 질문에 안내 문구가 추가될 때를 대비한 여분 문단 — 지금은 데이터에
      없으면 비워둔 채 hidden 처리된다 */
   .reflect-guide{ font-size:17px; color:var(--muted); line-height:1.65; margin:0 0 10px; }
@@ -368,10 +367,14 @@
      두 레이아웃에 동일하게 적용된다 */
   .pie{ width:450px; height:450px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 0 1px var(--line); }
   .legend{ display:flex; flex-direction:column; gap:16px; width:100%; }
-  /* 범례 문구를 "1번 응답: 0명 (0%)"처럼 더 명확하게 바꾸고, 교실 뒤에서도 읽히도록
-     글자 크기를 확실히 키운다(32px → 64px, 2배) */
-  .legend-item{ display:flex; align-items:center; gap:14px; font-size:64px; font-weight:700; color:var(--text); line-height:1.4; }
-  .legend-swatch{ width:56px; height:56px; border-radius:6px; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
+  /* 범례 문구 "N번 응답: X명 (Y%)"이 오른쪽 컬럼 폭(minmax(560px,620px)) 안에서
+     절대 넘치지 않도록, 64px(잘림 발생)보다는 낮추되 이전(32px)보다는 확실히 크게
+     44px로 조정. 그래도 라벨이 길어지는 빈칸형 등에서는 라벨/수치를 별도 span으로
+     나눠 flex-wrap으로 자연스럽게 2줄로 떨어지게 해서(단어 중간 절단 없이) 안전을
+     한 번 더 확보한다. */
+  .legend-item{ display:flex; align-items:center; gap:12px; font-size:44px; font-weight:700; color:var(--text); line-height:1.35; flex-wrap:wrap; }
+  .legend-item .legend-count{ white-space:nowrap; }
+  .legend-swatch{ width:40px; height:40px; border-radius:6px; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
   /* "정답" 탭에서 보여주는 정답 표시 — 기존(76px)의 3배(228px)로 키워서 교실 뒤에서도
      확실히 보이게 한다. 진한 배경+흰 글씨로 크림색 배경과 대비되는 것은 그대로 유지 */
   .answer-big{
@@ -380,11 +383,22 @@
     letter-spacing:.01em;
   }
 
-  /* 학생 서답형 답안 목록 — 성찰 질문처럼 교사가 실제로 읽고 피드백해야 하는 영역이라
-     한눈에 잘 보이도록 카드/폰트를 크게 키우고, 클릭하면 스포트라이트로 더 확대해서
-     읽을 수 있다(openSpotlight) */
-  .card-list{ display:flex; flex-direction:column; gap:12px; margin-top:10px; max-height:640px; overflow-y:auto; }
-  .ans-card{ background:var(--panel-2); border:1px solid var(--line); border-radius:14px; padding:18px 22px; cursor:pointer; font-size:21px; font-weight:600; line-height:1.7; }
+  /* 성찰 질문 학생 답변 그리드 — "결과 보기"를 누르면 한 반(최대 약 23명)의 답변이
+     한 화면에 격자로 모두 보여서, 교사가 스크롤 없이(또는 최소한으로) 훑어볼 수 있게
+     한다. 5열 x 최대 5줄(25칸) 기준으로 잡되, 학생이 그보다 적으면 자연스럽게 줄어든다.
+     이름은 표시하지 않는다(서답형 규칙). 답이 길면 카드 안에서 말줄임 처리하고,
+     클릭하면 기존 스포트라이트(openSpotlight)로 크게 확대해서 읽는다. */
+  .card-list{
+    display:grid; grid-template-columns:repeat(5, 1fr); gap:14px; margin-top:10px;
+    max-height:calc(100vh - 300px); overflow-y:auto; align-content:start;
+  }
+  @media (max-width: 1400px){ .card-list{ grid-template-columns:repeat(4, 1fr); } }
+  @media (max-width: 980px){ .card-list{ grid-template-columns:repeat(2, 1fr); } }
+  .ans-card{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:14px; padding:16px 18px;
+    cursor:pointer; font-size:17px; font-weight:600; line-height:1.55; min-height:120px;
+    display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; overflow:hidden;
+  }
   .ans-card:hover{ border-color:var(--accent); }
 
   .spotlight-overlay{
@@ -610,6 +624,14 @@
         <div class="tq-layout tq-layout-split hidden" id="tq-layout-split">
           <div class="tq-split-image" id="tq-split-image"></div>
           <div class="tq-split-right" id="tq-split-right"></div>
+        </div>
+
+        <!-- 성찰 질문 전용 레이아웃: 위=질문 카드(작고 간결하게), 아래=학생 답변 그리드
+             (여러 명 답변을 한 번에). 기출문제 등 다른 문항의 .tq-layout 좌우 2단
+             구조와 클래스를 공유하지 않는 독립 구조다(renderTeacherQuestionView 참고). -->
+        <div class="tq-reflect-layout hidden" id="tq-layout-reflect">
+          <div class="tq-reflect-qcard" id="tq-reflect-qcard"></div>
+          <div class="tq-reflect-results" id="tq-reflect-results"></div>
         </div>
 
         <!-- 두 레이아웃이 공유하는 실제 콘텐츠 요소들 — 렌더링 시 JS가 알맞은 위치로 옮긴다 -->
@@ -1478,7 +1500,7 @@ let resultTab = "student"; // "student" | "answer"
    기본 레이아웃(#tq-layout-normal)과 분할 레이아웃(#tq-layout-split)은 실제 콘텐츠
    요소(뱃지·텍스트·보기·이미지·선택지·정답통계)를 공유하므로, 매 렌더링마다 이 함수가
    그 요소들을 알맞은 컨테이너로 옮겨 담는다(appendChild는 기존 부모에서 노드를 옮긴다). */
-function layoutTeacherQuestionDom(isSplit, noteOnLeft){
+function layoutTeacherQuestionDom(isSplit, noteOnLeft, isReflect){
   const metaBlock = document.getElementById("tq-meta-block");
   const textEl = document.getElementById("tq-text");
   const guideEl = document.getElementById("tq-guide");
@@ -1489,10 +1511,25 @@ function layoutTeacherQuestionDom(isSplit, noteOnLeft){
   const revealGate = document.getElementById("reveal-gate");
   const resultEl = document.getElementById("tq-result");
 
-  document.getElementById("tq-layout-normal").classList.toggle("hidden", isSplit);
+  document.getElementById("tq-layout-normal").classList.toggle("hidden", isSplit || isReflect);
   document.getElementById("tq-layout-split").classList.toggle("hidden", !isSplit);
+  document.getElementById("tq-layout-reflect").classList.toggle("hidden", !isReflect);
 
-  if(isSplit){
+  if(isReflect){
+    // 성찰 질문 전용 레이아웃: 위쪽 작은 질문 카드 + 아래쪽 학생 답변 그리드.
+    // 다른 문항과 완전히 분리된 컨테이너(.tq-reflect-*)를 쓰므로 여기서만 이 두
+    // 컨테이너로 콘텐츠 요소를 옮긴다.
+    const qcardHost = document.getElementById("tq-reflect-qcard");
+    const resultsHost = document.getElementById("tq-reflect-results");
+    qcardHost.appendChild(metaBlock);
+    qcardHost.appendChild(guideEl);
+    qcardHost.appendChild(noteEl);
+    qcardHost.appendChild(noteBlocksEl);
+    qcardHost.appendChild(imgWrap);
+    qcardHost.appendChild(choicesEl);
+    resultsHost.appendChild(revealGate);
+    resultsHost.appendChild(resultEl);
+  } else if(isSplit){
     const imageHost = document.getElementById("tq-split-image");
     const rightHost = document.getElementById("tq-split-right");
     imageHost.classList.toggle("note-mode", !!noteOnLeft);
@@ -1535,7 +1572,10 @@ function renderTeacherQuestionView(){
   // 분할 레이아웃인데 image가 없고 note만 있는 문항(예: 반응식 텍스트 보기)은 그 note를
   // 참고자료 역할로 왼쪽 칸에 표시한다(기존에는 오른쪽 텍스트 영역에 있었음).
   const noteOnLeft = isSplit && !q.image && !!q.note;
-  layoutTeacherQuestionDom(isSplit, noteOnLeft);
+  // 성찰 질문은 그림·선택지가 전혀 없는 서답형(type:"short") 문항으로, 다른 문항들의
+  // 좌우 2단(.tq-layout) 구조 대신 완전히 독립된 전용 레이아웃(.tq-reflect-layout)을 쓴다.
+  const isReflect = q.tag === "성찰 질문";
+  layoutTeacherQuestionDom(isSplit, noteOnLeft, isReflect);
 
   renderTagBadge(document.getElementById("tq-tag"), q.tag);
   renderPageLabel(document.getElementById("tq-page"), q.page);
@@ -1596,13 +1636,6 @@ function renderTeacherQuestionView(){
   } else {
     choicesEl.classList.add("hidden");
   }
-
-  // 성찰 질문처럼 그림·선택지가 모두 없는 문항은 뱃지 아래 질문 텍스트를 조금 더
-  // 크게 보여준다(왼쪽 정렬은 유지, 가운데 정렬하지 않음). 분할 레이아웃은 항상
-  // image가 있어야 성립하므로 여기 해당되지 않는다.
-  const cardNormalEl = document.getElementById("tq-card-normal");
-  const isEmptyLayout = !isSplit && !q.image && !(q.type === "choice" && Array.isArray(q.options) && q.options.length);
-  cardNormalEl.classList.toggle("tq-empty-fill", isEmptyLayout);
 
   document.getElementById("reveal-gate").classList.toggle("hidden", tqRevealed);
   document.getElementById("tq-result").classList.toggle("hidden", !tqRevealed);
@@ -1718,7 +1751,7 @@ function renderDistributionPie(q, rows, colIndex, bodyEl){
     const pct = total ? Math.round(b.count/total*100) : 0;
     const color = PIE_COLORS[i % PIE_COLORS.length];
     const labelText = (q.type === "choice") ? ((i+1)+"번 응답") : escapeHtml(b.label);
-    return '<div class="legend-item"><span class="legend-swatch" style="background:'+color+'"></span>'+labelText+': '+b.count+'명 ('+pct+'%)</div>';
+    return '<div class="legend-item"><span class="legend-swatch" style="background:'+color+'"></span><span class="legend-label">'+labelText+'</span><span class="legend-count">: '+b.count+'명 ('+pct+'%)</span></div>';
   }).join("");
   bodyEl.innerHTML = '<div class="pie-wrap">'
     + '<div class="pie" style="background:'+gradient+'"></div>'
@@ -1733,8 +1766,10 @@ function renderShortAnswerCards(rows, colIndex){
     bodyEl.innerHTML = '<div class="stu-empty">아직 응답이 없어요.</div>';
     return;
   }
+  // 그리드 칸 하나에 6줄(line-clamp)까지 보이므로, 답이 길면 그 정도 분량까지만
+  // 미리보기로 보여주고 나머지는 "…" 처리 — 전체 내용은 클릭 시 스포트라이트로 본다.
   bodyEl.innerHTML = '<div class="card-list">' + answers.map(a=>{
-    const preview = a.length > 60 ? a.slice(0,60)+"…" : a;
+    const preview = a.length > 140 ? a.slice(0,140)+"…" : a;
     return '<div class="ans-card" data-full="'+encodeURIComponent(a)+'">'+escapeHtml(preview)+'</div>';
   }).join("") + '</div>';
   bodyEl.querySelectorAll(".ans-card").forEach(card=>{
