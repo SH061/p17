@@ -244,7 +244,7 @@
   /* 선생님보기 문항별 결과 — 좌(문항 카드) / 우(정답 탭+원그래프) 2단 배치.
      좌측 문제 카드 비중을 최대한 키우고, 하단 고정 내비게이션과 겹치지 않도록 여백 확보 */
   .tq-layout{
-    display:grid; grid-template-columns: 1.8fr 1fr; gap:18px;
+    display:grid; grid-template-columns: 1fr minmax(520px, 560px); gap:18px;
     max-width:none; width:100%; margin:0 auto; align-items:start;
     padding-bottom:72px;
   }
@@ -337,7 +337,14 @@
   /* 성찰 질문은 교사가 써둔 질문 자체보다 학생이 실제로 제출한 답변을 함께 읽는 게
      중요하므로, 질문 카드는 오히려 이전보다 작게(24px) 줄인다 — 아래 .card-list/.ans-card는
      반대로 크게 키운다 */
-  .tq-card.tq-empty-fill #tq-text{ font-size:24px; font-weight:700; margin:10px 0 6px; }
+  .tq-card.tq-empty-fill #tq-text{ font-size:24px; font-weight:700; margin:10px 0 6px; text-wrap:pretty; }
+  /* 성찰 질문 화면: 왼쪽 질문 카드보다 오른쪽 학생 답변 카드(.tq-side)가 진짜 중요한
+     정보이므로, 오른쪽 높이에 왼쪽을 맞춘다 — 이 문항일 때만 grid를 stretch로 바꾸고
+     양쪽 카드에 height:100%를 줘서 더 짧은 왼쪽이 오른쪽 높이까지 늘어나게 한다.
+     (다른 문항 타입은 기존처럼 align-items:start를 그대로 써서 영향 없음) */
+  .tq-layout:has(.tq-card.tq-empty-fill){ align-items:stretch; }
+  .tq-layout .tq-card.tq-empty-fill{ height:100%; }
+  .tq-layout:has(.tq-card.tq-empty-fill) #tq-side-normal{ height:100%; }
   /* 나중에 성찰 질문에 안내 문구가 추가될 때를 대비한 여분 문단 — 지금은 데이터에
      없으면 비워둔 채 hidden 처리된다 */
   .reflect-guide{ font-size:17px; color:var(--muted); line-height:1.65; margin:0 0 10px; }
@@ -348,19 +355,23 @@
      같은 DOM 요소를 그대로 옮겨 쓰므로(layoutTeacherQuestionDom 참고), 여기서 크기를
      한 번만 키우면 두 레이아웃 모두 동일하게(분할 레이아웃 수준으로) 커진다 */
   /* 탭 버튼은 오른쪽 폭이 줄어든 만큼 살짝 작게 */
+  /* 오른쪽 컬럼 폭이 좁아진 만큼 탭 버튼은 가로 폭 대신 세로 두께와 글자 크기를 키워서
+     눌러도 답답하지 않게 한다(폰트 18px → 36px, 위아래 패딩도 함께 확대) */
   .result-tabs{ display:flex; gap:8px; margin:0 0 16px; }
-  .result-tabs .btn{ flex:1; font-size:18px; font-weight:700; padding:14px 8px; }
+  .result-tabs .btn{ flex:1; font-size:36px; font-weight:700; padding:26px 8px; }
   .result-tabs .btn.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
 
   /* 원그래프는 그대로 두고, 범례(①②③④⑤ 응답 수/퍼센트)는 옆이 아니라
      원그래프 "아래쪽"에 세로로 배치해서 각 항목을 넓게 읽을 수 있게 한다 */
   .pie-wrap{ display:flex; flex-direction:column; gap:22px; align-items:center; justify-content:center; margin:10px 0; }
-  .pie{ width:300px; height:300px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 0 1px var(--line); }
+  /* 원그래프 300px → 450px(1.5배). 일반/분할 레이아웃 모두 같은 DOM을 공유하므로
+     두 레이아웃에 동일하게 적용된다 */
+  .pie{ width:450px; height:450px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 0 1px var(--line); }
   .legend{ display:flex; flex-direction:column; gap:16px; width:100%; }
   /* 범례 문구를 "1번 응답: 0명 (0%)"처럼 더 명확하게 바꾸고, 교실 뒤에서도 읽히도록
-     글자 크기를 확실히 키운다(24px → 32px) */
-  .legend-item{ display:flex; align-items:center; gap:14px; font-size:32px; font-weight:700; color:var(--text); line-height:1.4; }
-  .legend-swatch{ width:28px; height:28px; border-radius:6px; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
+     글자 크기를 확실히 키운다(32px → 64px, 2배) */
+  .legend-item{ display:flex; align-items:center; gap:14px; font-size:64px; font-weight:700; color:var(--text); line-height:1.4; }
+  .legend-swatch{ width:56px; height:56px; border-radius:6px; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
   /* "정답" 탭에서 보여주는 정답 표시 — 기존(76px)의 3배(228px)로 키워서 교실 뒤에서도
      확실히 보이게 한다. 진한 배경+흰 글씨로 크림색 배경과 대비되는 것은 그대로 유지 */
   .answer-big{
