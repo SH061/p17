@@ -375,14 +375,18 @@
   .legend-item{ display:flex; align-items:center; gap:12px; font-size:44px; font-weight:700; color:var(--text); line-height:1.35; flex-wrap:wrap; }
   .legend-item .legend-count{ white-space:nowrap; }
   .legend-swatch{ width:40px; height:40px; border-radius:6px; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
-  /* "정답" 탭에서 보여주는 정답 표시 — 228px에서 다시 2배(456px)로 키워서 교실 맨
-     뒤에서도 확실히 보이게 한다. 가로 폭은 오른쪽 컬럼 폭에 고정되어 있으므로 영향
-     없고, 커진 글자만큼 세로(line-height/padding)로 자연스럽게 늘어난다. 진한 배경+
-     흰 글씨로 크림색 배경과 대비되는 것은 그대로 유지 */
+  /* "정답" 탭에서 보여주는 정답 표시 — 예전에는 456px 고정 크기를 썼는데, "환원"처럼
+     2글자 이상인 답이 오른쪽 컬럼 폭 안에 한 글자씩 세로로 쪼개져 보이는 심각한 버그가
+     있었다. 이제는 고정 크기 대신 JS의 fitAnswerBig()가 실제 렌더링 폭을 측정해서
+     박스에 꽉 차면서도 절대 넘치지 않는 최대 크기를 매번 계산해 인라인 font-size로
+     넣어준다. 아래 456px는 JS가 적용되기 전(또는 실패 시)의 안전한 기본값일 뿐이며,
+     word-break은 "환원"류 버그의 원인이었던 break-word 대신 keep-all로 바꿔 두어
+     혹시 JS가 줄바꿈 모드로 전환하더라도 글자가 한 글자씩 쪼개지지 않게 한다. 진한
+     배경+흰 글씨로 크림색 배경과 대비되는 것은 그대로 유지 */
   .answer-big{
-    text-align:center; font-size:456px; font-weight:900; line-height:1.15;
+    text-align:center; font-size:64px; font-weight:900; line-height:1.15;
     color:#fff; background:#7a2419; border-radius:16px; padding:34px 20px;
-    letter-spacing:.01em; word-break:break-word;
+    letter-spacing:.01em; word-break:keep-all; white-space:nowrap; overflow:hidden;
   }
 
   /* 성찰 질문 학생 답변 그리드 — "결과 보기"를 누르면 한 반(최대 약 23명)의 답변이
@@ -415,6 +419,12 @@
   }
   .spotlight-overlay.show .spotlight-box{ transform:scale(2.5); }
   .spotlight-close{ margin-top:20px; }
+  /* 성찰 질문 학생 답변 스포트라이트 전용 — 학생이 직접 쓴 답변의 가독성을 최우선으로
+     해서 텍스트는 다른 문항(서답형 답안 카드)의 스포트라이트보다 2배 크게, 대신
+     화면을 가리는 "닫기" 버튼은 1/2 크기로 줄인다(폰트/패딩 모두 비례 축소). 다른
+     문항 타입의 스포트라이트(.spotlight-box에 reflect 클래스가 없는 경우)는 그대로 둔다. */
+  .spotlight-box.reflect{ font-size:44px; }
+  .spotlight-close.reflect{ font-size:7.5px; padding:6.5px 9px; border-radius:6px; margin-top:10px; }
 
   .hidden{ display:none !important; }
 
@@ -1683,13 +1693,13 @@ function renderResultTabsAndBody(q){
       const t2 = mkTab("모범답안", resultTab==="answer", ()=>{ resultTab="answer"; renderResultTabsAndBody(q); });
       tabsEl.appendChild(t1); tabsEl.appendChild(t2);
       if(resultTab === "answer"){
-        bodyEl.innerHTML = '<div class="answer-big" style="font-size:18px; text-align:left; line-height:1.7;">'+escapeHtml(q.sampleAnswer)+'</div>';
+        bodyEl.innerHTML = '<div class="answer-big" style="font-size:18px; text-align:left; line-height:1.7; white-space:normal; word-break:break-word; overflow:visible;">'+escapeHtml(q.sampleAnswer)+'</div>';
         return;
       }
     } else {
       tabsEl.classList.add("hidden"); tabsEl.innerHTML = "";
     }
-    renderShortAnswerCards(rows, colIndex);
+    renderShortAnswerCards(rows, colIndex, q.tag === "성찰 질문");
     return;
   }
 
@@ -1702,9 +1712,34 @@ function renderResultTabsAndBody(q){
 
   if(resultTab === "answer"){
     bodyEl.innerHTML = '<div class="answer-big">'+escapeHtml(q.correctAnswer)+'</div>';
+    fitAnswerBig(bodyEl.querySelector(".answer-big"));
     return;
   }
   renderDistributionPie(q, rows, colIndex, bodyEl);
+}
+
+// "정답" 탭의 .answer-big 글자 크기를 박스(부모 컨테이너) 폭에 맞게 자동으로 계산한다.
+// "①"처럼 짧은 답은 박스를 꽉 채울 만큼 크게(최대 320px), "환원"·"① ㄱ, ㄴ"처럼
+// 길어지는 답은 한 줄 안에 들어가는 선까지만 점점 작게 줄인다(최소 40px). 그래도
+// 안 들어가면(아주 긴 문장형 정답 등) 그때만 white-space를 normal로 바꾸고
+// word-break:keep-all을 유지해서, 단어/구 경계에서만 자연스럽게 줄바꿈되게 하고
+// 절대 한 글자씩 세로로 쪼개지지 않게 한다.
+function fitAnswerBig(el){
+  if(!el) return;
+  const MAX_FONT = 320, MIN_FONT = 40, STEP = 4;
+  el.style.whiteSpace = "nowrap";
+  el.style.wordBreak = "keep-all";
+  let size = MAX_FONT;
+  el.style.fontSize = size + "px";
+  while(size > MIN_FONT && el.scrollWidth > el.clientWidth){
+    size -= STEP;
+    el.style.fontSize = size + "px";
+  }
+  if(el.scrollWidth > el.clientWidth){
+    // 최소 크기로도 한 줄에 안 들어가면 단어 단위 줄바꿈을 허용한다(글자 쪼개짐 금지).
+    el.style.whiteSpace = "normal";
+    el.style.fontSize = MIN_FONT + "px";
+  }
 }
 
 function mkTab(label, active, onClick){
@@ -1767,7 +1802,7 @@ function renderDistributionPie(q, rows, colIndex, bodyEl){
     + '</div>';
 }
 
-function renderShortAnswerCards(rows, colIndex){
+function renderShortAnswerCards(rows, colIndex, isReflect){
   const bodyEl = document.getElementById("result-body");
   const answers = rows.map(r=>String((r.answers||[])[colIndex]||"").trim()).filter(v=>v);
   if(answers.length === 0){
@@ -1782,14 +1817,19 @@ function renderShortAnswerCards(rows, colIndex){
   }).join("") + '</div>';
   bodyEl.querySelectorAll(".ans-card").forEach(card=>{
     card.addEventListener("click", ()=>{
-      openSpotlight(decodeURIComponent(card.getAttribute("data-full")));
+      openSpotlight(decodeURIComponent(card.getAttribute("data-full")), !!isReflect);
     });
   });
 }
 
-function openSpotlight(text){
+// isReflect가 true면(성찰 질문 답변 카드) 스포트라이트 텍스트를 2배 크게, 닫기 버튼은
+// 1/2 크기로 보여준다(CSS의 .spotlight-box.reflect / .spotlight-close.reflect 참고).
+// 다른 문항(서답형 답안 카드 등)의 스포트라이트는 isReflect가 false/생략이라 기존과 동일하다.
+function openSpotlight(text, isReflect){
   const overlay = document.getElementById("spotlight-overlay");
   document.getElementById("spotlight-text").textContent = text;
+  document.querySelector(".spotlight-box").classList.toggle("reflect", !!isReflect);
+  document.getElementById("spotlight-close").classList.toggle("reflect", !!isReflect);
   overlay.classList.remove("hidden");
   // 다음 프레임에 show를 붙여서 확대 애니메이션이 재생되게 함
   requestAnimationFrame(()=>{
