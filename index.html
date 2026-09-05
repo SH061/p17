@@ -184,14 +184,14 @@
 
   .teacher-panel{ position:fixed; inset:0; background:var(--bg); z-index:90; overflow-y:auto; display:none; }
   .teacher-panel.on{ display:block; }
-  .teacher-inner{ max-width:2200px; margin:0 auto; padding:0 16px 40px; }
-  .picker-topbar{ max-width:2200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px 8px; }
+  .teacher-inner{ max-width:none; width:100%; margin:0 auto; padding:0 16px 40px; }
+  .picker-topbar{ max-width:none; width:100%; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px 8px; }
   .picker-title{ font-weight:800; font-size:15px; }
 
   /* 선생님보기 메인 화면 — 탭·반 정보·버튼·닫기를 한 줄에 압축 */
   .teacher-topbar{
     display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-    max-width:2200px; margin:0 auto; padding:10px 16px 8px;
+    max-width:none; width:100%; margin:0 auto; padding:10px 16px 8px;
     position:sticky; top:0; background:var(--bg); z-index:5;
   }
   .teacher-topbar .spacer{ flex:1; }
@@ -222,7 +222,7 @@
   .class-picker-card .btn{ display:block; margin:0 auto; font-size:18px; padding:14px 40px; }
 
   /* 1번 화면 — 학생 진행 상황: 이름 + 진행률 바 + 문항 수 + 정답률 */
-  .stu-grid{ display:flex; flex-direction:column; gap:8px; max-width:2200px; margin:0 auto; }
+  .stu-grid{ display:flex; flex-direction:column; gap:8px; max-width:none; width:100%; margin:0 auto; }
   .stu-row{ display:flex; align-items:center; gap:14px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 16px; }
   .stu-name{ font-weight:700; flex:0 0 auto; min-width:100px; }
   .stu-progress-track{ flex:1; height:8px; border-radius:6px; background:var(--panel-2); overflow:hidden; border:1px solid var(--line); min-width:60px; }
@@ -245,7 +245,7 @@
      좌측 문제 카드 비중을 최대한 키우고, 하단 고정 내비게이션과 겹치지 않도록 여백 확보 */
   .tq-layout{
     display:grid; grid-template-columns: 1.5fr 1.15fr; gap:18px;
-    max-width:2200px; margin:0 auto; align-items:start;
+    max-width:none; width:100%; margin:0 auto; align-items:start;
     padding-bottom:72px;
   }
   @media (max-width: 980px){
