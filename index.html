@@ -342,7 +342,12 @@
     background:var(--panel); border:1px solid var(--line); border-radius:16px;
     padding:16px 24px; flex:0 0 auto;
   }
-  .tq-reflect-qcard #tq-text{ font-size:26px; font-weight:700; margin:8px 0 4px; text-wrap:pretty; }
+  /* qmeta-left는 flex 컨테이너지만, 그 안의 #tq-text(flex 아이템)에 min-width:0을
+     안 주면 텍스트가 길 때 줄바꿈 대신 화면 밖으로 삐져나가는 flex 기본 버그가
+     생긴다(flex item의 기본 min-width는 auto라 줄바꿈 가능해도 줄어들지 않음).
+     성찰 질문처럼 문장이 긴 제목은 특히 이 문제가 잘 드러나므로 항상 줄바꿈 가능하게. */
+  #tq-text{ min-width:0; overflow-wrap:break-word; }
+  .tq-reflect-qcard #tq-text{ font-size:26px; font-weight:700; margin:8px 0 4px; text-wrap:pretty; white-space:normal; }
   .tq-reflect-results{ flex:1 1 auto; min-height:0; }
   /* 나중에 성찰 질문에 안내 문구가 추가될 때를 대비한 여분 문단 — 지금은 데이터에
      없으면 비워둔 채 hidden 처리된다 */
@@ -429,9 +434,11 @@
      그래도 답이 아주 길면 안 잘리도록 세로는 최대 뷰포트 90%까지만 허용하고
      넘치면 스크롤, 글자 크기는 JS(fitReflectSpotlight)가 박스에 맞게 자동 축소한다. */
   .spotlight-box.reflect{
-    max-width:90vw; width:90vw; max-height:90vh; overflow-y:auto;
+    width:88vw; height:78vh; max-width:88vw; max-height:78vh; overflow-y:auto;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
     font-size:88px; line-height:1.5; transform:scale(1) !important;
   }
+  .spotlight-box.reflect #spotlight-text{ max-width:100%; }
   .spotlight-overlay.show .spotlight-box.reflect{ transform:scale(1.04) !important; }
   .spotlight-close.reflect{ font-size:7.5px; padding:6.5px 9px; border-radius:6px; margin-top:10px; }
 
@@ -446,7 +453,7 @@
   .accuracy-mirage.show{ opacity:1; }
   .accuracy-mirage.fade{ opacity:0; filter:blur(18px); transform:scale(1.18); }
   .accuracy-mirage-num{
-    font-size:min(28vw, 320px); font-weight:900; color:#1f6f5c; letter-spacing:-.02em; line-height:1;
+    font-size:min(42vw, 480px); font-weight:900; color:#1f6f5c; letter-spacing:-.02em; line-height:1;
   }
 
   .hidden{ display:none !important; }
@@ -619,6 +626,7 @@
         <button class="btn gate-btn state-unknown" id="btn-gate-toggle">접속 확인 중…</button>
         <span class="spacer"></span>
         <span class="class-label" id="teacher-current-class"></span>
+        <button class="btn ghost" id="btn-accuracy-toggle">정답률 확인</button>
         <button class="btn ghost" id="btn-change-class">반 변경</button>
         <button class="btn ghost" id="btn-teacher-refresh">↻ 새로고침</button>
         <button class="btn danger" id="btn-teacher-reset">🗑 전체 초기화</button>
@@ -1420,6 +1428,14 @@ let teacherTab = "progress";
 let tqIndex = 0; // 문항별 결과에서 현재 보고 있는 문항 인덱스
 let tqRevealed = false;
 let latestTeacherData = null;
+// 정답률 신기루 연출 on/off. 기본은 켜짐(true) — 필요 없는 상황(예: 그냥 문제만 훑어볼 때)
+// 이면 교사가 상단 바에서 꺼둘 수 있다. 새로고침하면 다시 기본값(켜짐)으로 돌아간다
+// (localStorage 등 저장소를 쓰지 않는다는 이 스킬의 원칙을 그대로 따름).
+let accuracyRevealOn = true;
+document.getElementById("btn-accuracy-toggle").addEventListener("click", ()=>{
+  accuracyRevealOn = !accuracyRevealOn;
+  document.getElementById("btn-accuracy-toggle").textContent = accuracyRevealOn ? "정답률 확인" : "정답률 비공개";
+});
 
 function switchTeacherTab(tab){
   teacherTab = tab;
@@ -1837,6 +1853,7 @@ let accuracyMirageTimer = null;
 function showAccuracyMirage(q){
   const overlay = document.getElementById("accuracy-mirage");
   if(!overlay) return;
+  if(!accuracyRevealOn){ overlay.classList.add("hidden"); overlay.classList.remove("show","fade"); return; }
   clearTimeout(accuracyMirageTimer);
   const rows = (latestTeacherData && latestTeacherData.rows) || [];
   const pct = computeQuestionAccuracy(q, rows, tqIndex);
@@ -1926,17 +1943,25 @@ function renderShortAnswerCards(rows, colIndex, isReflect){
 }
 
 // 성찰 질문 답변 스포트라이트 전용 자동 맞춤 — 박스(.spotlight-box.reflect)는 화면
-// 폭의 90%(90vw)까지, 높이는 90vh까지만 허용되므로, 답이 길어서 그 안에서도 세로로
-// 넘치면(box.scrollHeight > box.clientHeight) 최소 가독성 크기(28px)까지 글자를
-// 점점 줄인다. 그래도 넘치면 박스 자체의 overflow-y:auto가 최후 안전장치로 스크롤을
-// 허용해서 화면 밖으로 잘리는 일은 절대 없게 한다.
+// 폭의 90%(90vw)까지, 높이는 90vh까지만 허용되므로, 답이 길어서 그 안에서도 넘치면
+// (세로: box.scrollHeight > box.clientHeight, 가로: 개행 없는 긴 덩어리가 안 잘리고
+// 삐져나오는 경우까지) 글자 크기를 계속 줄인다. "아무리 글자가 많아도 박스를 넘어가면
+// 안 된다"는 원칙에 따라 정해진 최소 크기에서 멈추지 않고, 정말 필요하면 아주 작은
+// 크기(14px)까지도 줄인다 — 그 이하로는 화면에서 읽는 것 자체가 무의미해지므로 거기서
+// 멈추고, 혹시라도 그래도 안 맞으면 박스의 overflow-y:auto가 최후 안전장치로 스크롤을
+// 허용해서 화면 밖으로 잘리는 일만은 절대 없게 한다.
 function fitReflectSpotlight(textEl){
   const box = textEl.closest(".spotlight-box");
   if(!box) return;
-  const MAX_FONT = 88, MIN_FONT = 28, STEP = 4;
+  // 개행 없이 아주 긴 덩어리가 있어도 박스 폭 안에서 강제로 줄바꿈되게 한다
+  // (단어 경계가 없는 자모 나열 같은 극단적인 입력에도 가로로 삐져나오지 않도록).
+  textEl.style.overflowWrap = "anywhere";
+  textEl.style.wordBreak = "break-word";
+  const MAX_FONT = 88, MIN_FONT = 14, STEP = 2;
   let size = MAX_FONT;
   textEl.style.fontSize = size + "px";
-  while(size > MIN_FONT && box.scrollHeight > box.clientHeight){
+  const overflows = ()=> box.scrollHeight > box.clientHeight || box.scrollWidth > box.clientWidth;
+  while(size > MIN_FONT && overflows()){
     size -= STEP;
     textEl.style.fontSize = size + "px";
   }
