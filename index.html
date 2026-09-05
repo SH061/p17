@@ -295,6 +295,16 @@
     display:flex; flex-direction:column;
     max-height:calc(100vh - 132px); overflow-y:auto;
   }
+  /* 분할 레이아웃(왼쪽 이미지/보기+오른쪽 텍스트+정답통계)의 오른쪽 칸은 문항 텍스트·
+     보기·선택지까지 이미 위쪽을 차지하고 있어서, 일반 레이아웃(.tq-side)과 같은 크기의
+     정답통계(탭+원그래프+범례)를 그대로 넣으면 세로 공간이 부족해 화면 밖으로 넘친다.
+     다른 레이아웃(.tq-side)의 크기는 그대로 두고, 이 분할 레이아웃 오른쪽 칸 안의
+     정답통계 요소들만 한 화면에 들어갈 정도로 축소한다. */
+  .tq-split-right .result-tabs .btn{ font-size:20px; padding:14px 8px; }
+  .tq-split-right .pie{ width:220px; height:220px; }
+  .tq-split-right .legend-item{ font-size:22px; gap:8px; }
+  .tq-split-right .legend-swatch{ width:22px; height:22px; }
+  .tq-split-right .answer-big{ font-size:120px; padding:20px 14px; }
 
   /* tq-card는 세로 flex 컬럼으로 두고, 화면 높이를 넘는 긴 문항(선택지 5개+보기 등)은
      카드 자체를 넘기지 않고 카드 내부에서만 스크롤되게 해서 "절대 잘리지 않게" 한다.
