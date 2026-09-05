@@ -184,14 +184,14 @@
 
   .teacher-panel{ position:fixed; inset:0; background:var(--bg); z-index:90; overflow-y:auto; display:none; }
   .teacher-panel.on{ display:block; }
-  .teacher-inner{ max-width:1680px; margin:0 auto; padding:0 16px 40px; }
-  .picker-topbar{ max-width:1680px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px 8px; }
+  .teacher-inner{ max-width:2200px; margin:0 auto; padding:0 16px 40px; }
+  .picker-topbar{ max-width:2200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px 8px; }
   .picker-title{ font-weight:800; font-size:15px; }
 
   /* 선생님보기 메인 화면 — 탭·반 정보·버튼·닫기를 한 줄에 압축 */
   .teacher-topbar{
     display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-    max-width:1680px; margin:0 auto; padding:10px 16px 8px;
+    max-width:2200px; margin:0 auto; padding:10px 16px 8px;
     position:sticky; top:0; background:var(--bg); z-index:5;
   }
   .teacher-topbar .spacer{ flex:1; }
@@ -222,7 +222,7 @@
   .class-picker-card .btn{ display:block; margin:0 auto; font-size:18px; padding:14px 40px; }
 
   /* 1번 화면 — 학생 진행 상황: 이름 + 진행률 바 + 문항 수 + 정답률 */
-  .stu-grid{ display:flex; flex-direction:column; gap:8px; max-width:1680px; margin:0 auto; }
+  .stu-grid{ display:flex; flex-direction:column; gap:8px; max-width:2200px; margin:0 auto; }
   .stu-row{ display:flex; align-items:center; gap:14px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 16px; }
   .stu-name{ font-weight:700; flex:0 0 auto; min-width:100px; }
   .stu-progress-track{ flex:1; height:8px; border-radius:6px; background:var(--panel-2); overflow:hidden; border:1px solid var(--line); min-width:60px; }
@@ -244,25 +244,39 @@
   /* 선생님보기 문항별 결과 — 좌(문항 카드) / 우(정답 탭+원그래프) 2단 배치.
      좌측 문제 카드 비중을 최대한 키우고, 하단 고정 내비게이션과 겹치지 않도록 여백 확보 */
   .tq-layout{
-    display:grid; grid-template-columns: 1.85fr 1.3fr; gap:18px;
-    max-width:1680px; margin:0 auto; align-items:start;
+    display:grid; grid-template-columns: 1.5fr 1.15fr; gap:18px;
+    max-width:2200px; margin:0 auto; align-items:start;
     padding-bottom:72px;
   }
   @media (max-width: 980px){
     .tq-layout{ grid-template-columns: 1fr; }
   }
 
-  /* 보기(note)+이미지가 함께 있는 문항 전용 레이아웃 — 왼쪽은 이미지만 크게,
-     오른쪽은 뱃지+텍스트+보기+선택지+정답통계를 세로로 이어 배치한다.
-     note와 image가 둘 다 있는 문항에서만 사용되고(renderTeacherQuestionView에서 판별),
-     그 외 일반 문항은 기존 .tq-layout(위) 구조를 그대로 쓴다. */
-  .tq-layout-split{ grid-template-columns: 1fr 1.35fr; }
+  /* "깨알 개념 체크 문제" 등 참고자료(이미지 또는 보기 텍스트)를 곁들이는 tag 전용
+     레이아웃 — 왼쪽은 참고자료(이미지 또는 note 텍스트)만 크게, 오른쪽은
+     뱃지+텍스트+선택지+정답통계를 세로로 이어 배치한다. 어떤 tag가 이 레이아웃을 쓸지는
+     SPLIT_TAG_SET(아래 스크립트)에서 tag 단위로 판정하므로, 같은 tag의 문항은
+     이미지 유무와 무관하게 항상 이 레이아웃으로 통일된다. 왼쪽 비중을 오른쪽보다
+     넓게(1.3fr : 1fr) 잡아서 참고자료(특히 이미지)가 실제로 크게 보이도록 한다. */
+  .tq-layout-split{ grid-template-columns: 1.3fr 1fr; }
   .tq-split-image{
     background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden;
     display:flex; align-items:center; justify-content:center; padding:10px;
     max-height:calc(100vh - 132px);
   }
   .tq-split-image .tq-img-box{ height:100%; max-height:calc(100vh - 152px); margin:0; }
+  /* 왼쪽 칸에 이미지 대신 note(반응식 등 텍스트 보기)가 들어갈 때 — 가운데 정렬 대신
+     위쪽 왼쪽 정렬로 바꾸고, 내용이 길면 칸 안에서 스크롤되게 한다 */
+  .tq-split-image.note-mode{
+    display:block; background:var(--panel); text-align:left; padding:22px 26px; overflow-y:auto;
+  }
+  /* 반응식 등 텍스트 보기를 (가)(나)(다)(라) 같은 항목/줄 단위로 나눠서 각각 별도
+     블록으로 보여준다 — 다닥다닥 붙지 않도록 블록 사이 간격을 넉넉하게 준다 */
+  .tq-note-blocks{ display:flex; flex-direction:column; gap:18px; }
+  .tq-note-block{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:12px;
+    padding:16px 20px; font-size:23px; line-height:1.75; font-weight:600;
+  }
   .tq-split-right{
     background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px 26px;
     display:flex; flex-direction:column;
@@ -315,22 +329,28 @@
      아래 왼쪽 정렬로 자연스럽게 배치하고(가운데 정렬 X), 카드 폭을 활용해 되도록
      한 줄에 가깝게 넓게 보이도록만 폰트를 키운다. 카드 높이는 다른 문항 카드처럼
      내용에 맞춰 자연스럽게 정해지고, 억지로 화면을 꽉 채우지 않는다. */
-  .tq-card.tq-empty-fill #tq-text{ font-size:32px; margin:14px 0 6px; }
+  /* 성찰 질문은 교사가 써둔 질문 자체보다 학생이 실제로 제출한 답변을 함께 읽는 게
+     중요하므로, 질문 카드는 오히려 이전보다 작게(24px) 줄인다 — 아래 .card-list/.ans-card는
+     반대로 크게 키운다 */
+  .tq-card.tq-empty-fill #tq-text{ font-size:24px; font-weight:700; margin:10px 0 6px; }
   /* 나중에 성찰 질문에 안내 문구가 추가될 때를 대비한 여분 문단 — 지금은 데이터에
      없으면 비워둔 채 hidden 처리된다 */
   .reflect-guide{ font-size:17px; color:var(--muted); line-height:1.65; margin:0 0 10px; }
 
   .reveal-gate{ text-align:center; margin:10px 0; }
   .reveal-gate .btn.primary{ font-size:22px; font-weight:800; padding:20px 36px; }
+  /* result-tabs/pie/legend는 기본(.tq-side) 레이아웃과 분할(.tq-split-right) 레이아웃이
+     같은 DOM 요소를 그대로 옮겨 쓰므로(layoutTeacherQuestionDom 참고), 여기서 크기를
+     한 번만 키우면 두 레이아웃 모두 동일하게(분할 레이아웃 수준으로) 커진다 */
   .result-tabs{ display:flex; gap:10px; margin:0 0 16px; }
-  .result-tabs .btn{ flex:1; font-size:20px; font-weight:700; padding:18px 10px; }
+  .result-tabs .btn{ flex:1; font-size:24px; font-weight:700; padding:20px 12px; }
   .result-tabs .btn.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
 
   .pie-wrap{ display:flex; gap:30px; align-items:center; flex-wrap:wrap; justify-content:center; margin:10px 0; }
-  .pie{ width:260px; height:260px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 0 1px var(--line); }
+  .pie{ width:300px; height:300px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 0 1px var(--line); }
   .legend{ display:flex; flex-direction:column; gap:14px; }
-  .legend-item{ display:flex; align-items:center; gap:12px; font-size:20px; font-weight:700; color:var(--text); }
-  .legend-swatch{ width:20px; height:20px; border-radius:5px; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
+  .legend-item{ display:flex; align-items:center; gap:12px; font-size:24px; font-weight:700; color:var(--text); }
+  .legend-swatch{ width:24px; height:24px; border-radius:5px; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
   /* "정답" 탭에서 보여주는 정답 표시 — 교실 뒤에서도 바로 보이도록 아주 크고 굵게,
      진한 배경+흰 글씨로 크림색 배경과 확실히 대비되게 한다 */
   .answer-big{
@@ -339,8 +359,11 @@
     letter-spacing:.01em;
   }
 
-  .card-list{ display:flex; flex-direction:column; gap:8px; margin-top:10px; max-height:420px; overflow-y:auto; }
-  .ans-card{ background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px 14px; cursor:pointer; font-size:14px; line-height:1.6; }
+  /* 학생 서답형 답안 목록 — 성찰 질문처럼 교사가 실제로 읽고 피드백해야 하는 영역이라
+     한눈에 잘 보이도록 카드/폰트를 크게 키우고, 클릭하면 스포트라이트로 더 확대해서
+     읽을 수 있다(openSpotlight) */
+  .card-list{ display:flex; flex-direction:column; gap:12px; margin-top:10px; max-height:640px; overflow-y:auto; }
+  .ans-card{ background:var(--panel-2); border:1px solid var(--line); border-radius:14px; padding:18px 22px; cursor:pointer; font-size:21px; font-weight:600; line-height:1.7; }
   .ans-card:hover{ border-color:var(--accent); }
 
   .spotlight-overlay{
@@ -579,6 +602,7 @@
           <div id="tq-text"></div>
           <div id="tq-guide" class="reflect-guide hidden"></div>
           <div id="tq-note" class="hidden"></div>
+          <div id="tq-note-blocks" class="hidden tq-note-blocks"></div>
           <div id="tq-image-wrap" class="hidden tq-img-box"><img id="tq-image" src="" alt=""></div>
           <div id="tq-choices" class="choices hidden"></div>
           <div id="reveal-gate" class="reveal-gate">
@@ -780,6 +804,31 @@ const CORRECT_ANSWERS = QUESTIONS.map(q=> (q.type==="short") ? "" : (q.correctAn
 const TEACHER_ITEMS = QUESTIONS.concat(REFLECT_QUESTIONS.map((text, i)=>({
   id: "reflect"+(i+1), type: "short", tag: "성찰 질문", text: text
 })));
+
+/* 선생님보기 "문항별 결과" — 어떤 tag의 문항이 분할 레이아웃(왼쪽 참고자료 / 오른쪽
+   텍스트+선택지+정답통계)을 쓸지 tag 단위로 미리 판정해둔다. 이렇게 하면 같은 tag
+   안에서는 문항마다 image 유무가 달라도 항상 같은 레이아웃으로 통일된다.
+   - "깨알 개념 체크 문제"는 항상 분할 레이아웃(명시적으로 고정).
+   - 그 외 tag는, 그 tag 안에 참고자료(이미지 또는 note)를 쓰는 문항이 하나라도 있으면
+     분할 레이아웃으로 통일한다(예: 보기가 있는 문항 하나 때문에 같은 tag의 다른 문항만
+     따로 기존 레이아웃을 쓰는 불일치를 막는다).
+*/
+const SPLIT_TAG_SET = (function(){
+  const forced = new Set(["깨알 개념 체크 문제"]);
+  const byTag = new Map();
+  QUESTIONS.forEach(q=>{
+    if(!q.tag) return;
+    if(!byTag.has(q.tag)) byTag.set(q.tag, []);
+    byTag.get(q.tag).push(q);
+  });
+  byTag.forEach((list, tag)=>{
+    // 기존 판정 기준(note와 image가 함께 있으면 분할)을 tag 단위로 넓혀서, 같은 tag
+    // 안의 문항 하나라도 이 조건을 만족하면 tag 전체를 분할 레이아웃으로 통일한다.
+    // (image만 있고 note가 없는 "확인문제"/"기출문제" 같은 tag는 그대로 기존 레이아웃 유지)
+    if(list.some(item => item.image && item.note)) forced.add(tag);
+  });
+  return forced;
+})();
 
 /* ============================================================
    상태
@@ -1408,11 +1457,12 @@ let resultTab = "student"; // "student" | "answer"
    기본 레이아웃(#tq-layout-normal)과 분할 레이아웃(#tq-layout-split)은 실제 콘텐츠
    요소(뱃지·텍스트·보기·이미지·선택지·정답통계)를 공유하므로, 매 렌더링마다 이 함수가
    그 요소들을 알맞은 컨테이너로 옮겨 담는다(appendChild는 기존 부모에서 노드를 옮긴다). */
-function layoutTeacherQuestionDom(isSplit){
+function layoutTeacherQuestionDom(isSplit, noteOnLeft){
   const metaBlock = document.getElementById("tq-meta-block");
   const textEl = document.getElementById("tq-text");
   const guideEl = document.getElementById("tq-guide");
   const noteEl = document.getElementById("tq-note");
+  const noteBlocksEl = document.getElementById("tq-note-blocks");
   const imgWrap = document.getElementById("tq-image-wrap");
   const choicesEl = document.getElementById("tq-choices");
   const revealGate = document.getElementById("reveal-gate");
@@ -1424,10 +1474,16 @@ function layoutTeacherQuestionDom(isSplit){
   if(isSplit){
     const imageHost = document.getElementById("tq-split-image");
     const rightHost = document.getElementById("tq-split-right");
+    imageHost.classList.toggle("note-mode", !!noteOnLeft);
+    // 왼쪽 칸: image가 있으면 이미지, 없고 note만 있으면(반응식 텍스트 보기 등) note를
+    // 문단 블록으로 나눠서 표시한다 — 둘 다 이 칸에 붙여두고 hidden 클래스로 토글한다.
     imageHost.appendChild(imgWrap);
+    imageHost.appendChild(noteBlocksEl);
     rightHost.appendChild(metaBlock);
     rightHost.appendChild(textEl);
     rightHost.appendChild(guideEl);
+    // note가 왼쪽에 이미 표시될 때는 오른쪽에 원본 noteEl을 두지 않는다(중복 방지).
+    // noteEl 자체는 항상 hidden 처리되므로 어디에 붙어도 화면에는 영향 없다.
     rightHost.appendChild(noteEl);
     rightHost.appendChild(choicesEl);
     rightHost.appendChild(revealGate);
@@ -1439,6 +1495,7 @@ function layoutTeacherQuestionDom(isSplit){
     cardHost.appendChild(textEl);
     cardHost.appendChild(guideEl);
     cardHost.appendChild(noteEl);
+    cardHost.appendChild(noteBlocksEl);
     cardHost.appendChild(imgWrap);
     cardHost.appendChild(choicesEl);
     sideHost.appendChild(revealGate);
@@ -1452,11 +1509,14 @@ function renderTeacherQuestionView(){
   document.getElementById("btn-tq-prev").disabled = (tqIndex===0);
   document.getElementById("btn-tq-next").disabled = (tqIndex===TEACHER_ITEMS.length-1);
 
-  // 보기(note)와 이미지가 함께 있는 문항만 "이미지(좌) | 텍스트+보기+선택지+정답통계(우)"
-  // 분할 레이아웃을 쓰고, 그 외(이미지만 있거나 note만 있거나 둘 다 없는) 문항은
-  // 기존의 "왼쪽 카드 전체 + 오른쪽 사이드 패널" 레이아웃을 그대로 쓴다.
-  const isSplit = !!(q.note && q.image);
-  layoutTeacherQuestionDom(isSplit);
+  // 같은 tag의 문항은 항상 같은 레이아웃을 쓰도록 SPLIT_TAG_SET(tag 단위로 미리 계산됨)으로
+  // 판정한다 — "깨알 개념 체크 문제"처럼 그림이 있는 문항과 없는 문항이 섞여 있어도
+  // tag가 같으면 항상 분할 레이아웃("왼쪽=참고자료 / 오른쪽=텍스트+선택지+정답통계")을 쓴다.
+  const isSplit = !!(q.tag && SPLIT_TAG_SET.has(q.tag));
+  // 분할 레이아웃인데 image가 없고 note만 있는 문항(예: 반응식 텍스트 보기)은 그 note를
+  // 참고자료 역할로 왼쪽 칸에 표시한다(기존에는 오른쪽 텍스트 영역에 있었음).
+  const noteOnLeft = isSplit && !q.image && !!q.note;
+  layoutTeacherQuestionDom(isSplit, noteOnLeft);
 
   renderTagBadge(document.getElementById("tq-tag"), q.tag);
   renderPageLabel(document.getElementById("tq-page"), q.page);
@@ -1465,7 +1525,18 @@ function renderTeacherQuestionView(){
   const guideEl = document.getElementById("tq-guide");
   if(q.guideText){ guideEl.textContent = q.guideText; guideEl.classList.remove("hidden"); } else guideEl.classList.add("hidden");
   const noteEl = document.getElementById("tq-note");
-  if(q.note){ noteEl.textContent = q.note; noteEl.classList.remove("hidden"); } else noteEl.classList.add("hidden");
+  const noteBlocksEl = document.getElementById("tq-note-blocks");
+  if(noteOnLeft){
+    // note를 왼쪽 참고자료 칸에 (가)(나)(다)(라) 등 항목/줄 단위로 나눠서 표시하고,
+    // 오른쪽에는 원본 note 텍스트를 중복 표시하지 않는다.
+    noteEl.classList.add("hidden");
+    noteBlocksEl.innerHTML = buildNoteBlocksHtml(q.note);
+    noteBlocksEl.classList.remove("hidden");
+  } else {
+    noteBlocksEl.classList.add("hidden");
+    noteBlocksEl.innerHTML = "";
+    if(q.note){ noteEl.textContent = q.note; noteEl.classList.remove("hidden"); } else noteEl.classList.add("hidden");
+  }
 
   // 교사용 이미지 컨테이너 — 문항마다 원본 크기가 달라도 항상 같은 박스(.tq-img-box)
   // 안에서 object-fit:contain으로 크게 보이도록 통일한다. imageSize(small 등)는
@@ -1520,6 +1591,21 @@ function renderTeacherQuestionView(){
 
   resultTab = "student";
   renderResultTabsAndBody(q);
+}
+
+// 분할 레이아웃 왼쪽 칸에 note(반응식 등 텍스트 보기)를 표시할 때, 줄바꿈 단위로
+// 먼저 나누고 한 줄 안에 "(가)(나)(다)(라)(마)" 같은 항목 표시가 이어붙어 있으면
+// 그 지점에서도 추가로 나눠서, 각 항목/반응식이 따로따로 여백을 두고 보이게 한다.
+function buildNoteBlocksHtml(noteText){
+  if(!noteText) return "";
+  const rawLines = String(noteText).split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const blocks = [];
+  rawLines.forEach(line=>{
+    const parts = line.split(/(?=\([가나다라마]\))/).map(s=>s.trim()).filter(Boolean);
+    if(parts.length){ parts.forEach(p=>blocks.push(p)); } else blocks.push(line);
+  });
+  if(blocks.length === 0) return "";
+  return blocks.map(b=>'<div class="tq-note-block">'+escapeHtml(b)+'</div>').join("");
 }
 
 function renderResultTabsAndBody(q){
