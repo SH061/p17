@@ -244,7 +244,7 @@
   /* 선생님보기 문항별 결과 — 좌(문항 카드) / 우(정답 탭+원그래프) 2단 배치.
      좌측 문제 카드 비중을 최대한 키우고, 하단 고정 내비게이션과 겹치지 않도록 여백 확보 */
   .tq-layout{
-    display:grid; grid-template-columns: 2.3fr 1fr; gap:14px;
+    display:grid; grid-template-columns: 1.85fr 1.3fr; gap:18px;
     max-width:1680px; margin:0 auto; align-items:start;
     padding-bottom:72px;
   }
@@ -252,18 +252,37 @@
     .tq-layout{ grid-template-columns: 1fr; }
   }
 
-  .tq-card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 18px; }
-  .tq-side{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 18px; min-height:200px; }
+  /* tq-card는 세로 flex 컬럼으로 두고, 화면 높이를 넘는 긴 문항(선택지 5개+보기 등)은
+     카드 자체를 넘기지 않고 카드 내부에서만 스크롤되게 해서 "절대 잘리지 않게" 한다.
+     상단 sticky 탑바(약 60px)와 하단 고정 내비게이션(72px) 높이를 뺀 값을 최대 높이로 잡는다. */
+  .tq-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 18px;
+    display:flex; flex-direction:column;
+    max-height:calc(100vh - 132px); overflow-y:auto;
+  }
+  .tq-side{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px 26px; min-height:200px;
+    max-height:calc(100vh - 132px); overflow-y:auto;
+  }
 
   /* 교사용 전용 이미지 컨테이너 — 문항마다 원본 크기가 달라도 항상 일정한 박스 안에서
      object-fit:contain으로 꽉 차게 보여서, 확대/축소 없이 바로 알아볼 수 있게 한다.
      학생용(#q-image, .qimg-wrap)과는 완전히 분리된 id/class라서 학생 화면에는 영향 없음.
-     교실 뒷자리에서도 보이도록 뷰포트 높이 기준으로 최대한 크게 잡는다. */
+     교실 뒷자리에서도 보이도록 뷰포트 높이 기준으로 크게 잡되, flex:1 1 auto + min-height:0으로
+     문항 텍스트/보기/선택지가 많아지면 이미지 쪽이 먼저 줄어들어 카드 전체가 잘리지 않게 한다. */
   .tq-img-box{
-    height:min(78vh, 900px); display:flex; align-items:center; justify-content:center;
+    height:min(62vh, 760px); flex:1 1 auto; min-height:120px;
+    display:flex; align-items:center; justify-content:center;
     margin:8px auto; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden;
+    width:100%;
   }
-  .tq-img-box img{ max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; display:block; }
+  /* width/height 100% + object-fit:contain — 이미지 원본 해상도가 박스보다 작아도
+     박스 크기에 맞게 확대되고, 비율은 그대로 유지된다(찌그러짐 없음). */
+  .tq-img-box img{ width:100%; height:100%; object-fit:contain; display:block; }
+
+  /* 그림이 2개로 나뉜 문항의 두 번째 그림 — 오른쪽 컬럼(.tq-side) 위쪽에 배치되는 보조 이미지 박스.
+     메인 이미지 박스보다 작게 잡아서 그 아래 정답 탭+원그래프가 들어갈 공간을 남긴다. */
+  .tq-img-box-side{ height:min(34vh, 380px); flex:0 0 auto; margin:0 auto 14px; }
 
   /* 교사용 전용 큰 글자 — 교실 뒷자리에서도 읽히도록 학생용보다 훨씬 크게.
      .teacher-panel 안에서만 적용되므로 학생 화면(.screen 등)에는 영향 없음 */
@@ -275,17 +294,24 @@
   #tq-choices{ margin-top:10px; }
   #tq-choices .choice-btn{ cursor:default; font-size:22px; padding:14px 10px; }
 
+  /* 성찰 질문처럼 그림·선택지가 없는 문항 — 카드 안 내용이 세로 중앙에 오도록 채워서
+     다른 문항 카드와 비슷한 비중으로 보이게 한다. */
+  .tq-card.tq-empty-fill{ justify-content:center; min-height:min(62vh, 760px); }
+  .tq-card.tq-empty-fill #tq-text{ font-size:38px; text-align:center; margin:18px 0; }
+  .tq-card.tq-empty-fill .qmeta{ justify-content:center; }
+
   .reveal-gate{ text-align:center; margin:10px 0; }
-  .result-tabs{ display:flex; gap:8px; margin:0 0 12px; }
-  .result-tabs .btn{ flex:1; }
+  .reveal-gate .btn.primary{ font-size:22px; font-weight:800; padding:20px 36px; }
+  .result-tabs{ display:flex; gap:10px; margin:0 0 16px; }
+  .result-tabs .btn{ flex:1; font-size:18px; padding:16px 10px; }
   .result-tabs .btn.active{ background:var(--accent-dim); color:var(--accent); border-color:var(--accent); }
 
-  .pie-wrap{ display:flex; gap:18px; align-items:center; flex-wrap:wrap; justify-content:center; margin:10px 0; }
-  .pie{ width:150px; height:150px; border-radius:50%; flex:0 0 auto; }
-  .legend{ display:flex; flex-direction:column; gap:8px; }
-  .legend-item{ display:flex; align-items:center; gap:8px; font-size:13.5px; }
-  .legend-swatch{ width:12px; height:12px; border-radius:3px; flex:0 0 auto; }
-  .answer-big{ text-align:center; font-size:30px; font-weight:900; color:var(--accent); padding:20px 10px; }
+  .pie-wrap{ display:flex; gap:26px; align-items:center; flex-wrap:wrap; justify-content:center; margin:10px 0; }
+  .pie{ width:220px; height:220px; border-radius:50%; flex:0 0 auto; }
+  .legend{ display:flex; flex-direction:column; gap:12px; }
+  .legend-item{ display:flex; align-items:center; gap:10px; font-size:18px; font-weight:600; }
+  .legend-swatch{ width:16px; height:16px; border-radius:4px; flex:0 0 auto; }
+  .answer-big{ text-align:center; font-size:38px; font-weight:900; color:var(--accent); padding:26px 14px; }
 
   .card-list{ display:flex; flex-direction:column; gap:8px; margin-top:10px; max-height:420px; overflow-y:auto; }
   .ans-card{ background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px 14px; cursor:pointer; font-size:14px; line-height:1.6; }
@@ -510,8 +536,9 @@
             <div id="tq-choices" class="choices hidden"></div>
           </div>
 
-          <!-- 오른쪽: 학생 정답/정답 탭 + 원그래프 -->
+          <!-- 오른쪽: (그림이 2개로 나뉜 문항이면) 두 번째 그림 + 학생 정답/정답 탭 + 원그래프 -->
           <div class="tq-side">
+            <div id="tq-image2-wrap" class="hidden tq-img-box tq-img-box-side"><img id="tq-image2" src="" alt=""></div>
             <div id="reveal-gate" class="reveal-gate">
               <button class="btn primary" id="btn-reveal">결과 보기</button>
             </div>
@@ -1361,6 +1388,17 @@ function renderTeacherQuestionView(){
     imgWrap.classList.remove("hidden");
   } else imgWrap.classList.add("hidden");
 
+  // 그림이 2개로 나뉜 문항(예: 문제가 길어서 그림을 둘로 쪼갠 기출문제) — 두 번째 그림은
+  // 왼쪽 문항 카드가 아니라 오른쪽 컬럼(.tq-side) 위쪽에 배치한다. QUESTIONS에서 image2
+  // 필드가 있는 문항만 해당되며, 없는 일반 문항은 기존 레이아웃 그대로다.
+  const img2Wrap = document.getElementById("tq-image2-wrap");
+  const img2El = document.getElementById("tq-image2");
+  if(q.image2){
+    img2El.src = q.image2;
+    img2El.alt = q.text || "";
+    img2Wrap.classList.remove("hidden");
+  } else img2Wrap.classList.add("hidden");
+
   // 선택지 — 교사가 학생들과 함께 화면으로 보도록 정적으로 표시(클릭 불가)
   const choicesEl = document.getElementById("tq-choices");
   choicesEl.innerHTML = "";
@@ -1378,6 +1416,13 @@ function renderTeacherQuestionView(){
   } else {
     choicesEl.classList.add("hidden");
   }
+
+  // 성찰 질문처럼 그림·선택지가 모두 없는 문항은 카드 안 내용이 위쪽에 몰리지 않도록
+  // 세로 중앙 정렬 + 큰 글자 레이아웃(tq-empty-fill)을 적용한다. 그림/선택지가 있는
+  // 일반 문항은 이 클래스가 빠져서 기존 레이아웃 그대로 유지된다.
+  const tqCardEl = document.getElementById("tq-text").closest(".tq-card");
+  const isEmptyLayout = !q.image && !(q.type === "choice" && Array.isArray(q.options) && q.options.length);
+  tqCardEl.classList.toggle("tq-empty-fill", isEmptyLayout);
 
   document.getElementById("reveal-gate").classList.toggle("hidden", tqRevealed);
   document.getElementById("tq-result").classList.toggle("hidden", !tqRevealed);
