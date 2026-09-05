@@ -420,10 +420,19 @@
   .spotlight-overlay.show .spotlight-box{ transform:scale(2.5); }
   .spotlight-close{ margin-top:20px; }
   /* 성찰 질문 학생 답변 스포트라이트 전용 — 학생이 직접 쓴 답변의 가독성을 최우선으로
-     해서 텍스트는 다른 문항(서답형 답안 카드)의 스포트라이트보다 2배 크게, 대신
+     해서 텍스트는 다른 문항(서답형 답안 카드)의 스포트라이트보다 훨씬 크게, 대신
      화면을 가리는 "닫기" 버튼은 1/2 크기로 줄인다(폰트/패딩 모두 비례 축소). 다른
-     문항 타입의 스포트라이트(.spotlight-box에 reflect 클래스가 없는 경우)는 그대로 둔다. */
-  .spotlight-box.reflect{ font-size:88px; max-width:560px; line-height:1.5; }
+     문항 타입의 스포트라이트(.spotlight-box에 reflect 클래스가 없는 경우)는 그대로 둔다.
+     일반 스포트라이트는 작은 박스를 transform:scale(2.5)로 확대하는 방식이라 폭이
+     고정돼 있는데, 성찰 질문은 답변 길이가 제각각이라 그 방식 대신 화면 폭 자체를
+     넉넉하게(90vw) 잡고, 확대 애니메이션도 살짝(1.04배)만 주는 방식으로 바꾼다.
+     그래도 답이 아주 길면 안 잘리도록 세로는 최대 뷰포트 90%까지만 허용하고
+     넘치면 스크롤, 글자 크기는 JS(fitReflectSpotlight)가 박스에 맞게 자동 축소한다. */
+  .spotlight-box.reflect{
+    max-width:90vw; width:90vw; max-height:90vh; overflow-y:auto;
+    font-size:88px; line-height:1.5; transform:scale(1) !important;
+  }
+  .spotlight-overlay.show .spotlight-box.reflect{ transform:scale(1.04) !important; }
   .spotlight-close.reflect{ font-size:7.5px; padding:6.5px 9px; border-radius:6px; margin-top:10px; }
 
   .hidden{ display:none !important; }
@@ -1823,12 +1832,32 @@ function renderShortAnswerCards(rows, colIndex, isReflect){
   });
 }
 
-// isReflect가 true면(성찰 질문 답변 카드) 스포트라이트 텍스트를 2배 크게, 닫기 버튼은
-// 1/2 크기로 보여준다(CSS의 .spotlight-box.reflect / .spotlight-close.reflect 참고).
-// 다른 문항(서답형 답안 카드 등)의 스포트라이트는 isReflect가 false/생략이라 기존과 동일하다.
+// 성찰 질문 답변 스포트라이트 전용 자동 맞춤 — 박스(.spotlight-box.reflect)는 화면
+// 폭의 90%(90vw)까지, 높이는 90vh까지만 허용되므로, 답이 길어서 그 안에서도 세로로
+// 넘치면(box.scrollHeight > box.clientHeight) 최소 가독성 크기(28px)까지 글자를
+// 점점 줄인다. 그래도 넘치면 박스 자체의 overflow-y:auto가 최후 안전장치로 스크롤을
+// 허용해서 화면 밖으로 잘리는 일은 절대 없게 한다.
+function fitReflectSpotlight(textEl){
+  const box = textEl.closest(".spotlight-box");
+  if(!box) return;
+  const MAX_FONT = 88, MIN_FONT = 28, STEP = 4;
+  let size = MAX_FONT;
+  textEl.style.fontSize = size + "px";
+  while(size > MIN_FONT && box.scrollHeight > box.clientHeight){
+    size -= STEP;
+    textEl.style.fontSize = size + "px";
+  }
+}
+
+// isReflect가 true면(성찰 질문 답변 카드) 스포트라이트 텍스트를 크게(위 fitReflectSpotlight로
+// 박스 크기에 맞게 자동 조정), 닫기 버튼은 1/2 크기로 보여준다(CSS의 .spotlight-box.reflect /
+// .spotlight-close.reflect 참고). 다른 문항(서답형 답안 카드 등)의 스포트라이트는
+// isReflect가 false/생략이라 기존과 동일하다.
 function openSpotlight(text, isReflect){
   const overlay = document.getElementById("spotlight-overlay");
-  document.getElementById("spotlight-text").textContent = text;
+  const textEl = document.getElementById("spotlight-text");
+  textEl.textContent = text;
+  textEl.style.fontSize = "";
   document.querySelector(".spotlight-box").classList.toggle("reflect", !!isReflect);
   document.getElementById("spotlight-close").classList.toggle("reflect", !!isReflect);
   overlay.classList.remove("hidden");
@@ -1836,6 +1865,7 @@ function openSpotlight(text, isReflect){
   requestAnimationFrame(()=>{
     requestAnimationFrame(()=>{
       overlay.classList.add("show");
+      if(isReflect) fitReflectSpotlight(textEl);
     });
   });
 }
