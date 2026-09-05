@@ -244,7 +244,7 @@
   /* 선생님보기 문항별 결과 — 좌(문항 카드) / 우(정답 탭+원그래프) 2단 배치.
      좌측 문제 카드 비중을 최대한 키우고, 하단 고정 내비게이션과 겹치지 않도록 여백 확보 */
   .tq-layout{
-    display:grid; grid-template-columns: 1.5fr 1.15fr; gap:18px;
+    display:grid; grid-template-columns: 1.8fr 1fr; gap:18px;
     max-width:none; width:100%; margin:0 auto; align-items:start;
     padding-bottom:72px;
   }
@@ -262,9 +262,12 @@
   .tq-split-image{
     background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden;
     display:flex; align-items:center; justify-content:center; padding:10px;
-    max-height:calc(100vh - 132px);
+    /* height를 max-height뿐 아니라 명시적으로도 고정해야, 안의 .tq-img-box가 쓰는
+       height:100%가 실제로 계산된다(부모가 auto 높이면 자식의 %height는 무시되어
+       이미지가 원본 비율대로 커지다 뷰포트 아래로 잘리는 문제가 있었다). */
+    height:calc(100vh - 140px); max-height:calc(100vh - 140px); min-height:0;
   }
-  .tq-split-image .tq-img-box{ height:100%; max-height:calc(100vh - 152px); margin:0; }
+  .tq-split-image .tq-img-box{ height:100%; max-height:100%; min-height:0; margin:0; }
   /* 왼쪽 칸에 이미지 대신 note(반응식 등 텍스트 보기)가 들어갈 때 — 가운데 정렬 대신
      위쪽 왼쪽 정렬로 바꾸고, 내용이 길면 칸 안에서 스크롤되게 한다 */
   .tq-split-image.note-mode{
@@ -317,10 +320,12 @@
 
   /* 교사용 전용 큰 글자 — 교실 뒷자리에서도 읽히도록 학생용보다 훨씬 크게.
      .teacher-panel 안에서만 적용되므로 학생 화면(.screen 등)에는 영향 없음 */
-  .teacher-panel .qtag{ height:auto; font-size:26px; padding-top:4px; padding-bottom:4px; }
+  .teacher-panel .qtag{ height:auto; font-size:39px; padding-top:4px; padding-bottom:4px; }
   .teacher-panel .qtag img{ height:36px; }
-  .teacher-panel .q-page{ font-size:22px; }
-  #tq-text{ font-size:30px; font-weight:800; line-height:1.5; }
+  .teacher-panel .q-page{ font-size:33px; }
+  /* 뱃지+학습지쪽수+제목을 한 줄로 나란히 배치 — 제목이 아주 길 때만 자연스럽게 다음 줄로 넘어간다 */
+  .teacher-panel .qmeta-left{ flex-wrap:wrap; row-gap:4px; }
+  #tq-text{ font-size:45px; font-weight:800; line-height:1.5; }
   #tq-note{ font-size:24px; white-space:pre-wrap; background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin:12px 0; line-height:1.6; }
   #tq-choices{ margin-top:10px; }
   #tq-choices .choice-btn{ cursor:default; font-size:22px; padding:14px 10px; }
@@ -342,19 +347,24 @@
   /* result-tabs/pie/legend는 기본(.tq-side) 레이아웃과 분할(.tq-split-right) 레이아웃이
      같은 DOM 요소를 그대로 옮겨 쓰므로(layoutTeacherQuestionDom 참고), 여기서 크기를
      한 번만 키우면 두 레이아웃 모두 동일하게(분할 레이아웃 수준으로) 커진다 */
-  .result-tabs{ display:flex; gap:10px; margin:0 0 16px; }
-  .result-tabs .btn{ flex:1; font-size:24px; font-weight:700; padding:20px 12px; }
+  /* 탭 버튼은 오른쪽 폭이 줄어든 만큼 살짝 작게 */
+  .result-tabs{ display:flex; gap:8px; margin:0 0 16px; }
+  .result-tabs .btn{ flex:1; font-size:18px; font-weight:700; padding:14px 8px; }
   .result-tabs .btn.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
 
-  .pie-wrap{ display:flex; gap:30px; align-items:center; flex-wrap:wrap; justify-content:center; margin:10px 0; }
+  /* 원그래프는 그대로 두고, 범례(①②③④⑤ 응답 수/퍼센트)는 옆이 아니라
+     원그래프 "아래쪽"에 세로로 배치해서 각 항목을 넓게 읽을 수 있게 한다 */
+  .pie-wrap{ display:flex; flex-direction:column; gap:22px; align-items:center; justify-content:center; margin:10px 0; }
   .pie{ width:300px; height:300px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 0 1px var(--line); }
-  .legend{ display:flex; flex-direction:column; gap:14px; }
-  .legend-item{ display:flex; align-items:center; gap:12px; font-size:24px; font-weight:700; color:var(--text); }
-  .legend-swatch{ width:24px; height:24px; border-radius:5px; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
-  /* "정답" 탭에서 보여주는 정답 표시 — 교실 뒤에서도 바로 보이도록 아주 크고 굵게,
-     진한 배경+흰 글씨로 크림색 배경과 확실히 대비되게 한다 */
+  .legend{ display:flex; flex-direction:column; gap:16px; width:100%; }
+  /* 범례 문구를 "1번 응답: 0명 (0%)"처럼 더 명확하게 바꾸고, 교실 뒤에서도 읽히도록
+     글자 크기를 확실히 키운다(24px → 32px) */
+  .legend-item{ display:flex; align-items:center; gap:14px; font-size:32px; font-weight:700; color:var(--text); line-height:1.4; }
+  .legend-swatch{ width:28px; height:28px; border-radius:6px; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
+  /* "정답" 탭에서 보여주는 정답 표시 — 기존(76px)의 3배(228px)로 키워서 교실 뒤에서도
+     확실히 보이게 한다. 진한 배경+흰 글씨로 크림색 배경과 대비되는 것은 그대로 유지 */
   .answer-big{
-    text-align:center; font-size:76px; font-weight:900; line-height:1.25;
+    text-align:center; font-size:228px; font-weight:900; line-height:1.2;
     color:#fff; background:#7a2419; border-radius:16px; padding:34px 20px;
     letter-spacing:.01em;
   }
@@ -597,9 +607,9 @@
             <div class="qmeta-left">
               <span class="qtag" id="tq-tag">문항</span>
               <span class="q-page" id="tq-page"></span>
+              <div id="tq-text"></div>
             </div>
           </div>
-          <div id="tq-text"></div>
           <div id="tq-guide" class="reflect-guide hidden"></div>
           <div id="tq-note" class="hidden"></div>
           <div id="tq-note-blocks" class="hidden tq-note-blocks"></div>
@@ -1480,7 +1490,6 @@ function layoutTeacherQuestionDom(isSplit, noteOnLeft){
     imageHost.appendChild(imgWrap);
     imageHost.appendChild(noteBlocksEl);
     rightHost.appendChild(metaBlock);
-    rightHost.appendChild(textEl);
     rightHost.appendChild(guideEl);
     // note가 왼쪽에 이미 표시될 때는 오른쪽에 원본 noteEl을 두지 않는다(중복 방지).
     // noteEl 자체는 항상 hidden 처리되므로 어디에 붙어도 화면에는 영향 없다.
@@ -1492,7 +1501,6 @@ function layoutTeacherQuestionDom(isSplit, noteOnLeft){
     const cardHost = document.getElementById("tq-card-normal");
     const sideHost = document.getElementById("tq-side-normal");
     cardHost.appendChild(metaBlock);
-    cardHost.appendChild(textEl);
     cardHost.appendChild(guideEl);
     cardHost.appendChild(noteEl);
     cardHost.appendChild(noteBlocksEl);
@@ -1693,10 +1701,13 @@ function renderDistributionPie(q, rows, colIndex, bodyEl){
     return color+" "+start.toFixed(2)+"% "+end.toFixed(2)+"%";
   });
   const gradient = "conic-gradient(" + gradientParts.join(", ") + ")";
+  // 범례 문구 — 선택형(①②③④⑤)은 "1번 응답: 0명 (0%)"처럼 번호로 명확히 표시하고,
+  // 빈칸형처럼 번호가 없는 답은 학생이 적은 값 그대로 사용한다
   const legend = buckets.map((b,i)=>{
     const pct = total ? Math.round(b.count/total*100) : 0;
     const color = PIE_COLORS[i % PIE_COLORS.length];
-    return '<div class="legend-item"><span class="legend-swatch" style="background:'+color+'"></span>'+escapeHtml(b.label)+' — '+b.count+'명 ('+pct+'%)</div>';
+    const labelText = (q.type === "choice") ? ((i+1)+"번 응답") : escapeHtml(b.label);
+    return '<div class="legend-item"><span class="legend-swatch" style="background:'+color+'"></span>'+labelText+': '+b.count+'명 ('+pct+'%)</div>';
   }).join("");
   bodyEl.innerHTML = '<div class="pie-wrap">'
     + '<div class="pie" style="background:'+gradient+'"></div>'
