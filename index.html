@@ -423,7 +423,7 @@
      해서 텍스트는 다른 문항(서답형 답안 카드)의 스포트라이트보다 2배 크게, 대신
      화면을 가리는 "닫기" 버튼은 1/2 크기로 줄인다(폰트/패딩 모두 비례 축소). 다른
      문항 타입의 스포트라이트(.spotlight-box에 reflect 클래스가 없는 경우)는 그대로 둔다. */
-  .spotlight-box.reflect{ font-size:44px; }
+  .spotlight-box.reflect{ font-size:88px; max-width:560px; line-height:1.5; }
   .spotlight-close.reflect{ font-size:7.5px; padding:6.5px 9px; border-radius:6px; margin-top:10px; }
 
   .hidden{ display:none !important; }
@@ -980,6 +980,7 @@ document.getElementById("btn-start").addEventListener("click", async ()=>{
 function renderTagBadge(el, tag){
   el.className = "qtag";
   el.innerHTML = "";
+  el.removeAttribute("style");
   if(tag === "스스로 확인하기"){
     const img = document.createElement("img");
     img.src = "images/tag-selfcheck.png";
