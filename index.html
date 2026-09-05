@@ -184,14 +184,14 @@
 
   .teacher-panel{ position:fixed; inset:0; background:var(--bg); z-index:90; overflow-y:auto; display:none; }
   .teacher-panel.on{ display:block; }
-  .teacher-inner{ max-width:1280px; margin:0 auto; padding:0 16px 40px; }
-  .picker-topbar{ max-width:1280px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px 8px; }
+  .teacher-inner{ max-width:1680px; margin:0 auto; padding:0 16px 40px; }
+  .picker-topbar{ max-width:1680px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px 8px; }
   .picker-title{ font-weight:800; font-size:15px; }
 
   /* 선생님보기 메인 화면 — 탭·반 정보·버튼·닫기를 한 줄에 압축 */
   .teacher-topbar{
     display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-    max-width:1280px; margin:0 auto; padding:10px 16px 8px;
+    max-width:1680px; margin:0 auto; padding:10px 16px 8px;
     position:sticky; top:0; background:var(--bg); z-index:5;
   }
   .teacher-topbar .spacer{ flex:1; }
@@ -222,7 +222,7 @@
   .class-picker-card .btn{ display:block; margin:0 auto; font-size:18px; padding:14px 40px; }
 
   /* 1번 화면 — 학생 진행 상황: 이름 + 진행률 바 + 문항 수 + 정답률 */
-  .stu-grid{ display:flex; flex-direction:column; gap:8px; max-width:1280px; margin:0 auto; }
+  .stu-grid{ display:flex; flex-direction:column; gap:8px; max-width:1680px; margin:0 auto; }
   .stu-row{ display:flex; align-items:center; gap:14px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 16px; }
   .stu-name{ font-weight:700; flex:0 0 auto; min-width:100px; }
   .stu-progress-track{ flex:1; height:8px; border-radius:6px; background:var(--panel-2); overflow:hidden; border:1px solid var(--line); min-width:60px; }
@@ -232,34 +232,48 @@
   .stu-empty, .storage-warning{ color:var(--muted); text-align:center; padding:30px 10px; }
   .storage-warning{ color:var(--bad); }
 
-  .tq-nav{ display:flex; align-items:center; justify-content:center; gap:16px; max-width:1280px; margin:0 auto 10px; }
-  .tq-nav .btn{ flex:0 0 auto; }
-  .tq-count{ font-size:13px; color:var(--muted); font-weight:700; }
+  /* 이전 문항/다음 문항 내비게이션 — 전체화면 수업 중에도 항상 보이도록 화면 하단 중앙에 고정 */
+  .tq-nav{
+    position:fixed; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center;
+    gap:20px; margin:0; padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    background:var(--panel); border-top:1px solid var(--line); z-index:20;
+  }
+  .tq-nav .btn{ flex:0 0 auto; font-size:16px; padding:12px 22px; }
+  .tq-count{ font-size:16px; color:var(--muted); font-weight:700; }
 
-  /* 선생님보기 문항별 결과 — 좌(문항 카드) / 우(정답 탭+원그래프) 2단 배치 */
+  /* 선생님보기 문항별 결과 — 좌(문항 카드) / 우(정답 탭+원그래프) 2단 배치.
+     좌측 문제 카드 비중을 최대한 키우고, 하단 고정 내비게이션과 겹치지 않도록 여백 확보 */
   .tq-layout{
-    display:grid; grid-template-columns: 1.35fr 1fr; gap:16px;
-    max-width:1280px; margin:0 auto; align-items:start;
+    display:grid; grid-template-columns: 2.3fr 1fr; gap:14px;
+    max-width:1680px; margin:0 auto; align-items:start;
+    padding-bottom:72px;
   }
   @media (max-width: 980px){
     .tq-layout{ grid-template-columns: 1fr; }
   }
 
-  .tq-card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px 20px; }
-  .tq-side{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px 20px; min-height:200px; }
+  .tq-card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 18px; }
+  .tq-side{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 18px; min-height:200px; }
 
   /* 교사용 전용 이미지 컨테이너 — 문항마다 원본 크기가 달라도 항상 일정한 박스 안에서
      object-fit:contain으로 꽉 차게 보여서, 확대/축소 없이 바로 알아볼 수 있게 한다.
-     학생용(#q-image, .qimg-wrap)과는 완전히 분리된 id/class라서 학생 화면에는 영향 없음. */
+     학생용(#q-image, .qimg-wrap)과는 완전히 분리된 id/class라서 학생 화면에는 영향 없음.
+     교실 뒷자리에서도 보이도록 뷰포트 높이 기준으로 최대한 크게 잡는다. */
   .tq-img-box{
-    height:300px; display:flex; align-items:center; justify-content:center;
-    margin:10px auto; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden;
+    height:min(78vh, 900px); display:flex; align-items:center; justify-content:center;
+    margin:8px auto; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden;
   }
   .tq-img-box img{ max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; display:block; }
-  #tq-text{ font-size:17px; font-weight:700; line-height:1.5; }
-  #tq-note{ font-size:14.5px; white-space:pre-wrap; background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:11px 14px; margin:10px 0; line-height:1.6; }
+
+  /* 교사용 전용 큰 글자 — 교실 뒷자리에서도 읽히도록 학생용보다 훨씬 크게.
+     .teacher-panel 안에서만 적용되므로 학생 화면(.screen 등)에는 영향 없음 */
+  .teacher-panel .qtag{ height:auto; font-size:26px; padding-top:4px; padding-bottom:4px; }
+  .teacher-panel .qtag img{ height:36px; }
+  .teacher-panel .q-page{ font-size:22px; }
+  #tq-text{ font-size:30px; font-weight:800; line-height:1.5; }
+  #tq-note{ font-size:24px; white-space:pre-wrap; background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin:12px 0; line-height:1.6; }
   #tq-choices{ margin-top:10px; }
-  #tq-choices .choice-btn{ cursor:default; font-size:13.5px; padding:10px 8px; }
+  #tq-choices .choice-btn{ cursor:default; font-size:22px; padding:14px 10px; }
 
   .reveal-gate{ text-align:center; margin:10px 0; }
   .result-tabs{ display:flex; gap:8px; margin:0 0 12px; }
