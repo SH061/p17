@@ -210,6 +210,15 @@
   .accuracy-toggle.on{ background:rgba(93,184,114,.14); color:#3f7d54; border-color:rgba(93,184,114,.45); }
   .accuracy-toggle.off{ background:rgba(213,86,107,.14); color:#a34456; border-color:rgba(213,86,107,.4); }
   .gate-btn.state-confirm{ background:rgba(213,86,107,.35); color:var(--bad); border-color:var(--bad); }
+  /* "문제풀기 시작!"/"문제풀기 그만!" 토글 — 접속 게이트(.gate-btn)와 같은 톤 방식을
+     재사용한다. 기본(진행 중)은 은은한 초록, 확인 대기는 진한 빨강, 정지 상태는
+     눈에 띄는 빨강 계열로 접속 게이트의 state-closed와 같은 톤을 쓴다. */
+  .ps-btn{ font-weight:800; padding:8px 14px; font-size:12.5px; white-space:nowrap; }
+  /* 세 상태가 눈에 띄게 다른 색으로 — 진행 중(초록, 안심) / 확인 대기(주황, 주의)
+     / 정지됨(빨강, 경고)으로 채도를 뚜렷이 구분해서 지금 상태를 한눈에 알 수 있게 함. */
+  .ps-btn.state-running{ background:rgba(93,184,114,.16); color:#3f7d54; border-color:rgba(93,184,114,.5); }
+  .ps-btn.state-confirm{ background:rgba(212,160,23,.28); color:#9c7a0e; border-color:rgba(212,160,23,.55); }
+  .ps-btn.state-stopped{ background:rgba(213,86,107,.35); color:var(--bad); border-color:var(--bad); }
   .class-label{ font-size:12.5px; color:var(--muted); white-space:nowrap; }
   .teacher-topbar .btn{ padding:8px 13px; font-size:12.5px; white-space:nowrap; }
   /* "방금 갱신함" 문구를 상단 바 오른쪽 끝이 아니라 "새로고침" 버튼 바로 아래
@@ -482,6 +491,20 @@
     font-size:min(42vw, 480px); font-weight:900; color:#1f6f5c; letter-spacing:-.02em; line-height:1;
   }
 
+  /* "문제풀기 그만!" 정지 상태 — 선생님이 정지시키면 학생 화면 전체를 덮어
+     아래 화면(선택지·입력창·이전/다음 버튼)이 전혀 조작되지 않게 막는다.
+     정답률 신기루(.accuracy-mirage, 민트 톤)와 혼동되지 않도록 다른(크림/베이지) 톤을 쓰고,
+     신기루처럼 잠깐 있다 사라지지 않고 선생님이 풀 때까지 계속 떠 있는다. */
+  .problemstop-overlay{
+    position:fixed; inset:0; z-index:400; display:flex; align-items:center; justify-content:center;
+    background:#f7f0e2; text-align:center; padding:24px;
+    pointer-events:auto; touch-action:none;
+  }
+  .problemstop-overlay.hidden{ display:none !important; pointer-events:none; }
+  .problemstop-msg{
+    font-size:min(7vw, 34px); font-weight:900; color:#8a6a2f; letter-spacing:-.01em; line-height:1.5;
+  }
+
   .hidden{ display:none !important; }
 
   /* 시간 검증 게이트 */
@@ -652,6 +675,7 @@
         <button class="btn gate-btn state-unknown" id="btn-gate-toggle">접속 확인 중…</button>
         <span class="spacer"></span>
         <span class="class-label" id="teacher-current-class"></span>
+        <button class="btn ps-btn state-running" id="btn-problemstop-toggle">문제풀기 시작!</button>
         <button class="btn ghost accuracy-toggle on" id="btn-accuracy-toggle">정답률 공개</button>
         <button class="btn ghost" id="btn-change-class">반 변경</button>
         <span class="refresh-wrap">
@@ -743,6 +767,11 @@
   <div class="accuracy-mirage-num" id="accuracy-mirage-num"></div>
 </div>
 
+<!-- "문제풀기 그만!" 정지 오버레이 — 선생님이 정지시키면 학생 화면을 완전히 덮는다 -->
+<div class="problemstop-overlay hidden" id="problemstop-overlay">
+  <div class="problemstop-msg">문제를 선생님과<br>함께 풀어봅시다</div>
+</div>
+
 </div><!-- /#app-root -->
 
 <script>
@@ -813,6 +842,60 @@ function gasConfigured(){
       // 서버 상태를 확인할 수 없으면 우회를 막기 위해 안전하게 접속을 차단한다.
       blockAccess('접속 상태를 확인할 수 없어요. 선생님께 문의해 주세요.');
     });
+})();
+</script>
+
+<script>
+/* ============================================================
+   "문제풀기 그만!" 정지 상태 폴링 (학생 화면 전용)
+   접속 게이트와는 완전히 별개의 공통 값이다. 접속 게이트는 접속 자체를
+   막지만, 이건 이미 들어와 문제를 풀고 있는 학생 화면을 선생님이 원할 때
+   잠깐 잠그는 용도다. app-root가 보인 뒤(=접속 게이트를 통과한 뒤)부터
+   5초마다 폴링하며, 정지 상태면 오버레이로 화면 전체를 덮어 그 아래
+   무엇도(선택지·입력창·이전/다음 버튼 등) 조작할 수 없게 막는다.
+   ============================================================ */
+(function problemStopWatcher(){
+  const PS_POLL_MS = 5000;
+  const overlay = document.getElementById('problemstop-overlay');
+  const appRoot = document.getElementById('app-root');
+  // ?t=1 로 들어온 교사용 링크는 애초에 이 기능의 영향을 받지 않는다
+  // (교사가 스스로를 막을 이유가 없음 — 접속 게이트의 teacherBypass와 동일한 원칙).
+  const teacherBypassPS = new URLSearchParams(window.location.search).has('t');
+
+  function paint(stopped){
+    // 학생용 링크로 들어왔더라도, 그 안에서 "선생님 보기"(교사용 패널)를 열어
+    // 학생들과 화면을 공유하며 풀이 중인 경우에는 화면을 잠그면 안 된다 —
+    // 교사가 직접 조작해야 하는 화면이기 때문. 교사 패널이 열려 있는 동안은
+    // 정지 상태여도 오버레이를 항상 숨긴다.
+    const teacherPanelOpen = !!document.getElementById('teacher-panel') &&
+      document.getElementById('teacher-panel').classList.contains('on');
+    overlay.classList.toggle('hidden', !stopped || teacherPanelOpen);
+  }
+
+  function fetchStopped(){
+    return fetch(GAS_URL + '?action=problemStopStatus', { method: 'GET' })
+      .then(res=>{
+        if(!res.ok) throw new Error('문제풀이상태 응답 오류');
+        return res.json();
+      })
+      .then(data=> !!(data && data.stopped));
+  }
+
+  function poll(){
+    if(!gasConfigured() || teacherBypassPS) return;
+    fetchStopped()
+      .then(stopped=> paint(stopped))
+      .catch(()=>{ /* 폴링 중 일시적 오류는 무시하고 다음 주기에 다시 확인 */ });
+  }
+
+  // app-root가 실제로 보일 때(=접속 게이트 통과 후)부터 폴링을 시작한다.
+  const startWhenVisible = setInterval(()=>{
+    if(!appRoot.classList.contains('hidden')){
+      clearInterval(startWhenVisible);
+      poll();
+      setInterval(poll, PS_POLL_MS);
+    }
+  }, 300);
 })();
 </script>
 
@@ -1379,6 +1462,7 @@ function selectTeacherClass(cls){
   switchTeacherTab("progress");
   renderTeacherDashboard();
   refreshGateButton();
+  refreshProblemStopButton();
 }
 document.getElementById("btn-change-class").addEventListener("click", ()=>{
   document.getElementById("teacher-main").classList.add("hidden");
@@ -1449,6 +1533,71 @@ gateBtn.addEventListener("click", ()=>{
   setGate(false);
 });
 
+/* ---------- "문제풀기 시작!" / "문제풀기 그만!" 토글 (전체 공통, 반과 무관) ---------- */
+// 접속 게이트와 똑같은 패턴: 기본은 진행 중, 정지는 두 번 눌러야 하고(실수 방지),
+// 정지된 상태를 다시 시작할 때는 접속 게이트가 "열기"를 한 번에 여는 것과 동일하게
+// 확인 단계 없이 바로 되돌아간다. 상태는 서버(구글시트 "문제풀이상태" 탭)의 공통 값.
+let problemStopped = false;
+let psConfirmArmed = false, psConfirmTimer = null;
+const psBtn = document.getElementById("btn-problemstop-toggle");
+
+function paintProblemStopButton(){
+  psBtn.classList.remove("state-running","state-confirm","state-stopped");
+  if(psConfirmArmed){
+    psBtn.classList.add("state-confirm");
+    psBtn.textContent = "문제풀이 그만할까요?";
+  } else if(problemStopped){
+    psBtn.classList.add("state-stopped");
+    psBtn.textContent = "문제풀기 그만!";
+  } else {
+    psBtn.classList.add("state-running");
+    psBtn.textContent = "문제풀기 시작!";
+  }
+}
+async function refreshProblemStopButton(){
+  if(!gasConfigured()) return;
+  try{
+    const res = await fetch(GAS_URL + "?action=problemStopStatus", { method:"GET" });
+    const data = await res.json();
+    problemStopped = !!(data && data.stopped);
+  }catch(e){ /* 조용히 넘어가고 다음 새로고침 때 다시 시도 */ }
+  psConfirmArmed = false;
+  clearTimeout(psConfirmTimer);
+  paintProblemStopButton();
+}
+async function setProblemStop(stopped){
+  psBtn.disabled = true;
+  try{
+    if(gasConfigured()){
+      const res = await fetch(GAS_URL + "?action=setProblemStop&value=" + (stopped ? "true" : "false"), { method:"GET" });
+      const data = await res.json();
+      problemStopped = !!(data && data.stopped);
+    }
+  }catch(e){ /* 실패하면 다음 조작 때 refreshProblemStopButton으로 실제 상태를 다시 반영 */ }
+  psBtn.disabled = false;
+  psConfirmArmed = false;
+  clearTimeout(psConfirmTimer);
+  paintProblemStopButton();
+}
+psBtn.addEventListener("click", ()=>{
+  if(problemStopped){
+    // 정지된 상태 → 확인 없이 바로 재시작.
+    setProblemStop(false);
+    return;
+  }
+  if(!psConfirmArmed){
+    // 진행 중 → 첫 클릭은 확인 단계로만 진입 (아직 정지하지 않음).
+    psConfirmArmed = true;
+    paintProblemStopButton();
+    clearTimeout(psConfirmTimer);
+    psConfirmTimer = setTimeout(()=>{ psConfirmArmed = false; paintProblemStopButton(); }, 4000);
+    return;
+  }
+  // 확인 단계에서 다시 클릭 → 실제로 정지한다.
+  clearTimeout(psConfirmTimer);
+  setProblemStop(true);
+});
+
 /* ---------- 탭 전환 ---------- */
 let teacherTab = "progress";
 let tqIndex = 0; // 문항별 결과에서 현재 보고 있는 문항 인덱스
@@ -1481,6 +1630,7 @@ document.getElementById("tab-results").addEventListener("click", ()=>switchTeach
 document.getElementById("btn-teacher-refresh").addEventListener("click", ()=>{
   renderTeacherDashboard();
   refreshGateButton();
+  refreshProblemStopButton();
 });
 
 let resetArmed = false, resetArmTimer = null;
